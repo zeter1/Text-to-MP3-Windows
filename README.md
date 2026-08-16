@@ -49,6 +49,16 @@ The application primarily uses the Python standard library plus:
 
 The program creates local runtime folders next to the script/executable when that location is writable, including settings, diagnostic logs, recovery data and MP3 text backups. These runtime folders are excluded from Git by `.gitignore`.
 
+## Verification
+
+The repository includes a Windows GitHub Actions workflow that compiles the main source file on every push and pull request:
+
+```powershell
+python -m py_compile text_to_mp3.py
+```
+
+This is a non-destructive syntax check; Windows SAPI, playback devices and FFmpeg behavior still require real Windows testing.
+
 ## Platform
 
 This project is Windows-specific because speech synthesis and several system integrations use Windows SAPI, COM, the registry and Win32 APIs.
@@ -56,3 +66,7 @@ This project is Windows-specific because speech synthesis and several system int
 ## Version
 
 Current application version in the source: **4.2 FULL**.
+
+## License
+
+No open-source license is currently granted. The source code is published for portfolio and code-review purposes.
