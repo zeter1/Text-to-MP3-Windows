@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Application runtime data
+Настройки программы/
+Логи проблем/
+Незавершённые задачи/
+Бэкапы текста MP3/
+
+# Temporary and generated audio
+*.wav
+*.part.mp3
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
