@@ -1,30 +1,43 @@
-# Text to MP3 for Windows
+# Text to MP3 для Windows
 
-Windows desktop application for reading text aloud and converting text to MP3 using Microsoft SAPI and FFmpeg.
+**Windows-приложение для озвучивания текста и преобразования текста в MP3 с использованием Microsoft SAPI и FFmpeg.**
 
-## Features
+Программа позволяет читать текст вслух системными голосами Windows, работать с несколькими текстами во вкладках и сохранять длинные тексты в MP3. Проект ориентирован на удобную повседневную работу, восстановление после прерываний и диагностику проблем.
 
-- Text-to-speech playback through Windows SAPI.
-- Export long text to MP3.
-- Multiple text tabs with persistent workspace state.
-- Per-tab global hotkeys for capturing selected text from other applications.
-- Pause and resume reading with a saved position.
-- Optional deletion of already-read sentences.
-- Voice, speed, pitch, volume and playback-device controls.
-- MP3 bitrate selection.
-- Recovery of interrupted MP3 conversion jobs.
-- Diagnostic logging designed for troubleshooting with ChatGPT/Codex.
-- Optional autostart with Windows.
+## Возможности
 
-## Requirements
+- Озвучивание текста через **Microsoft SAPI**.
+- Сохранение длинного текста в **MP3**.
+- Несколько текстовых вкладок с сохранением состояния рабочего пространства.
+- Глобальные горячие клавиши для каждой вкладки — можно захватывать выделенный текст из других программ.
+- Пауза и продолжение чтения с сохранением текущей позиции.
+- Опциональное удаление уже прочитанных предложений.
+- Настройка голоса, скорости, высоты тона и громкости.
+- Выбор устройства воспроизведения.
+- Настройка битрейта MP3.
+- Восстановление прерванных заданий конвертации в MP3.
+- Диагностические логи, рассчитанные на анализ проблем с помощью **ChatGPT / Codex**.
+- Опциональный автозапуск вместе с Windows.
+
+## Для чего подходит программа
+
+Text to MP3 может использоваться для:
+
+- прослушивания больших текстов вместо чтения с экрана;
+- подготовки аудиоверсий статей, заметок и документов;
+- создания MP3-файлов из текста;
+- быстрого озвучивания выделенного текста из других приложений;
+- работы с несколькими текстами одновременно во вкладках.
+
+## Требования
 
 - Windows 10/11.
-- Python 3.11+ recommended.
-- A Microsoft SAPI voice installed in Windows.
+- Рекомендуется Python 3.11 или новее.
+- Установленный в Windows голос Microsoft SAPI.
 - `pywin32`.
-- `imageio-ffmpeg` (or FFmpeg available in `PATH`).
+- `imageio-ffmpeg` либо FFmpeg, доступный через `PATH`.
 
-## Installation
+## Установка
 
 ```powershell
 py -m venv .venv
@@ -32,41 +45,47 @@ py -m venv .venv
 py -m pip install -r requirements.txt
 ```
 
-## Run
+## Запуск
 
 ```powershell
 py text_to_mp3.py
 ```
 
-## Main dependencies
+## Основные зависимости
 
-The application primarily uses the Python standard library plus:
+Большая часть программы использует стандартную библиотеку Python. Дополнительно применяются:
 
-- `pywin32` for Windows SAPI/COM integration.
-- `imageio-ffmpeg` as a fallback source for an FFmpeg executable.
+- `pywin32` — интеграция с Windows SAPI и COM;
+- `imageio-ffmpeg` — резервный источник исполняемого файла FFmpeg.
 
-## Data and logs
+## Данные, настройки и логи
 
-The program creates local runtime folders next to the script/executable when that location is writable, including settings, diagnostic logs, recovery data and MP3 text backups. These runtime folders are excluded from Git by `.gitignore`.
+Во время работы программа может создавать локальные служебные папки рядом со скриптом или исполняемым файлом, если запись в эту директорию разрешена. В них хранятся настройки, диагностические логи, данные восстановления и резервные копии текста для MP3.
 
-## Verification
+Эти рабочие данные исключены из Git через `.gitignore` и не должны попадать в репозиторий.
 
-The repository includes a Windows GitHub Actions workflow that compiles the main source file on every push and pull request:
+## Надёжность и восстановление
+
+Для длительной конвертации текста предусмотрено восстановление прерванных заданий. Диагностическая система помогает сохранять полезную информацию о сбоях, чтобы проблемы можно было быстрее анализировать и исправлять.
+
+## Проверка проекта
+
+В репозитории есть workflow GitHub Actions для Windows, который при каждом push и pull request проверяет основной Python-файл на синтаксические ошибки:
 
 ```powershell
 python -m py_compile text_to_mp3.py
 ```
 
-This is a non-destructive syntax check; Windows SAPI, playback devices and FFmpeg behavior still require real Windows testing.
+Это безопасная проверка исходного кода. Работа Microsoft SAPI, реальных устройств воспроизведения и FFmpeg должна дополнительно проверяться непосредственно в Windows.
 
-## Platform
+## Платформа
 
-This project is Windows-specific because speech synthesis and several system integrations use Windows SAPI, COM, the registry and Win32 APIs.
+Проект предназначен именно для **Windows**, поскольку синтез речи и часть системных функций используют Windows SAPI, COM, реестр Windows и Win32 API.
 
-## Version
+## Версия
 
-Current application version in the source: **4.2 FULL**.
+Текущая версия приложения в исходном коде: **4.2 FULL**.
 
-## License
+## Лицензия
 
-No open-source license is currently granted. The source code is published for portfolio and code-review purposes.
+На данный момент проект не распространяется под открытой лицензией. Исходный код опубликован в первую очередь для портфолио и ознакомления с реализацией проекта.
