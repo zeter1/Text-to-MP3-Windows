@@ -2,11 +2,20 @@ name: Python checks
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: text-to-mp3-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  syntax:
+  syntax-and-contracts:
     runs-on: windows-latest
 
     steps:
@@ -18,6 +27,10 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Compile Python source
+      - name: Compile Python source and tests
         shell: pwsh
-        run: python -m py_compile text_to_mp3.py
+        run: python -m compileall -q text_to_mp3.py tests
+
+      - name: Run offline repository contract tests
+        shell: pwsh
+        run: python -m unittest discover -s tests -v
