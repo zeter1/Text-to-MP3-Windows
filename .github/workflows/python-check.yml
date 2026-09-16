@@ -21,6 +21,10 @@ concurrency:
 jobs:
   syntax-and-contracts:
     runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
 
     steps:
       - name: Checkout repository
@@ -31,10 +35,32 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Install runtime dependencies for tests
+        shell: pwsh
+        run: python -m pip install -r requirements.txt
+
       - name: Compile Python source and tests
         shell: pwsh
-        run: python -m compileall -q text_to_mp3.py tests
+        run: python -m compileall -q text_to_mp3.py tests build_support
 
       - name: Run offline repository contract tests
         shell: pwsh
         run: python -m unittest discover -s tests -v
+
+      - name: Verify SAPI and FFmpeg dependencies
+        shell: pwsh
+        run: python -c "import sys; sys.argv=['package_runtime','--self-test']; import build_support.package_runtime"
+
+      - name: Build and smoke-test packaged EXE
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[package]'))
+        shell: cmd
+        run: build_exe.bat --ci
+
+      - name: Verify packaged distribution
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[package]'))
+        shell: pwsh
+        run: |
+          $exe = 'dist\Text-to-MP3-Windows\Text-to-MP3-Windows.exe'
+          if (-not (Test-Path $exe)) { throw 'Packaged EXE was not created' }
+          if (-not (Test-Path 'dist\Text-to-MP3-Windows\runtime')) { throw 'Packaged runtime folder is missing' }
+          Get-Item $exe | Format-List Name,Length,LastWriteTime
