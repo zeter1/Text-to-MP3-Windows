@@ -1,0 +1,68 @@
+name: Сообщить об ошибке
+description: Сообщение о проблеме Text to MP3 for Windows
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за сообщение. Для проблем SAPI/MP3 особенно полезны версия Windows, выбранный голос, сценарий воспроизведения и диагностические данные.
+        Перед публикацией логов проверьте, что в них нет личного текста или путей, которыми вы не хотите делиться.
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия программы
+      placeholder: "например: 4.2 FULL"
+    validations:
+      required: true
+
+  - type: input
+    id: windows_version
+    attributes:
+      label: Windows
+      placeholder: "например: Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: input
+    id: voice
+    attributes:
+      label: Голос SAPI
+      description: Если проблема связана с чтением или генерацией MP3.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Что произошло
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое поведение
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Диагностика
+      description: Приложите безопасный фрагмент лога. Не публикуйте исходный личный текст без необходимости.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Проверки
+      options:
+        - label: Я проверил проблему на текущей версии проекта.
+          required: true
+        - label: Я проверил приложенные материалы на наличие личного текста и данных.
+          required: true
