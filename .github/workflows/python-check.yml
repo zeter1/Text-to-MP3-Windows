@@ -41,7 +41,7 @@ jobs:
 
       - name: Compile Python source and tests
         shell: pwsh
-        run: python -m compileall -q text_to_mp3.py tests build_support
+        run: python -m compileall -q text_to_mp3.py tts_app tests build_support
 
       - name: Run offline repository contract tests
         shell: pwsh
