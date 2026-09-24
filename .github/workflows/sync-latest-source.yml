@@ -1,0 +1,54 @@
+name: Sync latest modular source
+
+on:
+  push:
+    branches:
+      - sync-latest-20260924
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-latest-source
+  cancel-in-progress: false
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sync branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Verify and unpack staged source
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=".sync/latest-source.tar.gz.b64"
+          if [[ ! -f "$payload" ]]; then
+            echo "Payload already consumed; nothing to do."
+            exit 0
+          fi
+
+          tr -d '\r\n' < "$payload" | base64 --decode > /tmp/latest-source.tar.gz
+          actual="$(sha256sum /tmp/latest-source.tar.gz | awk '{print $1}')"
+          expected="4dbfd8bc55c0617c523bd6b1d3a4269c2f98983be95b7350c2803cdc9704b5d7"
+          [[ "$actual" == "$expected" ]] || {
+            echo "Payload SHA-256 mismatch: $actual"
+            exit 1
+          }
+
+          tar -tzf /tmp/latest-source.tar.gz
+          tar -xzf /tmp/latest-source.tar.gz
+          rm -f "$payload"
+          rmdir .sync 2>/dev/null || true
+
+          python -m compileall -q text_to_mp3.py tts_app
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A text_to_mp3.py tts_app .sync
+          git diff --cached --check
+          git commit -m "refactor: sync latest modular source"
+          git push origin HEAD:sync-latest-20260924
