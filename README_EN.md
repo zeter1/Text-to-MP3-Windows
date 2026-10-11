@@ -6,6 +6,16 @@
 
 The project is designed for everyday use: text can be listened to directly in the application, selected text can be captured from other programs, and audio versions of articles, notes, and documents can be created.
 
+## Download and run on Windows
+
+> Windows builds are marked **Prerelease**: they are preliminary builds for testing. A release build may differ from the current source.
+
+1. Open [GitHub Releases](https://github.com/zeter1/Text-to-MP3-Windows/releases) and expand **Assets** for the build you choose.
+2. Download `Text-to-MP3-Windows-x64.zip` and extract the entire archive.
+3. Run `Text-to-MP3-Windows.exe`, enter text, and select a voice.
+
+Python, `pywin32`, and FFmpeg are included. Keep the `runtime` folder beside the EXE. Windows needs at least one installed **Microsoft SAPI voice**. A SHA-256 file is published beside the ZIP.
+
 ## What the project demonstrates
 
 - Python integration with Microsoft SAPI and COM through `pywin32`;
@@ -32,7 +42,7 @@ The project is designed for everyday use: text can be listened to directly in th
 - diagnostic logs for troubleshooting;
 - optional Windows autostart.
 
-## Installation
+## Installation from source
 
 1. Install Python 3.11 or newer for Windows.
 2. Make sure at least one Microsoft SAPI voice is installed in Windows.
@@ -53,7 +63,7 @@ py -m pip install -r requirements.txt
 
 MP3 generation uses `imageio-ffmpeg` or FFmpeg available from the system `PATH`.
 
-## Launch
+## Launch from source
 
 ```powershell
 py text_to_mp3.py
