@@ -46,6 +46,7 @@
 | назначение/активация tab hotkeys | `tts_app/app_hotkeys.py` | `windows_hotkey_*` |
 | голоса/устройства/общие audio settings UI | `tts_app/app_audio_settings.py` | `sapi_core.py` |
 | обработка app event queue | `tts_app/app_event_dispatch.py` | producer конкретного события |
+| постоянные уведомления о готовом MP3 / показать файл | `tts_app/conversion_notifications.py` | `app_event_dispatch.py` принимает `done` на Tk thread |
 | shutdown / close / background threads | `tts_app/app_shutdown.py` | event dispatch |
 
 ## Composition/facade files

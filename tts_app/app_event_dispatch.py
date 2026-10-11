@@ -7,6 +7,7 @@ from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
 from .widgets import *
+from .conversion_notifications import ConversionNotifications
 
 class AppEventDispatchMixin:
     def _process_events(self) -> None:
@@ -243,18 +244,13 @@ class AppEventDispatchMixin:
                             "границы. Новый текст также сохранён."
                         )
 
-                    backup_note = (
-                        "\n\nБэкап текста (хранится 45 дней):\n"
-                        f"{backup_path}"
-                        if backup_path
-                        else ""
-                    )
-                    messagebox.showinfo(
-                        APP_TITLE,
-                        f"MP3 успешно создан:\n{info['output']}"
-                        + text_note
-                        + backup_note,
-                    )
+                    if not self.shutdown_in_progress:
+                        if not hasattr(self, "completion_notifications"):
+                            self.completion_notifications = ConversionNotifications(self.root)
+                        backup_note = "\nБэкап текста хранится 45 дней." if backup_path else ""
+                        self.completion_notifications.show(
+                            Path(info["output"]), text_note.strip() + backup_note,
+                        )
 
                 elif kind == "cancelled":
                     info = payload  # type: ignore[assignment]

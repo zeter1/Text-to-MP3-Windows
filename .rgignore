@@ -1,0 +1,13 @@
+# Runtime/user data. Search explicitly only when the task needs it.
+Логи проблем/
+Бэкапы текста MP3/
+Незавершённые задачи/
+Настройки программы/Вкладки/
+__pycache__/
+*.pyc
+build/
+dist/
+# Generated navigation/index files: open explicitly, do not pollute normal source search.
+docs/SYMBOL_INDEX.md
+docs/SYMBOL_INDEX.json
+docs/MODULE_SIZES.json
