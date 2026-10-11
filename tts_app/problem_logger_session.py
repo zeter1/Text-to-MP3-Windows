@@ -10,6 +10,8 @@ class ProblemLoggerSessionMixin:
         self.session_write_lock = threading.Lock()
         self.summary_lock = threading.Lock()
         self.disabled = False
+        self.diagnostic_integrity = "ok"
+        self.diagnostic_failure_count = 0
 
         self.session_id = (
             datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -126,8 +128,47 @@ class ProblemLoggerSessionMixin:
                 )
 
             self._write_diagnostic_summary("running")
+        except Exception as exc:
+            self._record_diagnostic_failure("session_init", exc)
+
+    def _record_diagnostic_failure(self, stage: str, exc: BaseException) -> None:
+        """One bounded independent record; never recurse through event()."""
+        self.disabled = True
+        self.diagnostic_integrity = "degraded"
+        self.diagnostic_failure_count += 1
+        payload = {
+            "schema": 1, "ts": now_iso(), "session_id": self.session_id,
+            "diagnostic_integrity": "degraded", "stage": stage,
+            "exception_type": type(exc).__name__,
+            "errno": getattr(exc, "errno", None),
+            "winerror": getattr(exc, "winerror", None),
+            "failures": self.diagnostic_failure_count,
+        }
+        line = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        try:
+            # A separate file avoids the broken event/error/atomic-write path.
+            target = LOGS_DIR / "diagnostic_emergency.json"
+            with self.lock:
+                if target.exists():
+                    if target.stat().st_size > 4096:
+                        raise ValueError("emergency file exceeds owned size")
+                    previous = json.loads(target.read_text(encoding="utf-8"))
+                    if (previous.get("schema") != 1
+                            or previous.get("diagnostic_integrity") != "degraded"
+                            or not previous.get("session_id") or not previous.get("stage")):
+                        raise ValueError("emergency file ownership is unknown")
+                target.write_text(line + "\n", encoding="utf-8")
         except Exception:
-            self.disabled = True
+            try:
+                if sys.stderr is not None:
+                    print(line, file=sys.stderr)
+            except Exception:
+                pass
+        try:
+            self._write_diagnostic_summary("diagnostic_failure")
+        except Exception:
+            # The emergency record already owns diagnostic failure evidence.
+            pass
 
     def _cleanup_old_sessions(self) -> None:
         LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -335,5 +376,5 @@ class ProblemLoggerSessionMixin:
         try:
             self._write_session(status)
             self._write_diagnostic_summary(status)
-        except Exception:
-            pass
+        except Exception as exc:
+            self._record_diagnostic_failure("session_close", exc)

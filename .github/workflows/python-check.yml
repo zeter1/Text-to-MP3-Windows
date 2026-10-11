@@ -47,6 +47,15 @@ jobs:
         shell: pwsh
         run: python -m unittest discover -s tests -v
 
+      - name: Run modular preview and logging regression gate
+        shell: pwsh
+        run: |
+          # This checkout contains source only; fallback storage also stays isolated.
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'tts-ci-state'
+          python -c "from pathlib import Path; from tts_app import runtime; root=Path.cwd().resolve(); assert runtime.STORAGE_BASE_DIR.resolve() == root; assert runtime.SETTINGS_DIR.resolve().is_relative_to(root); assert runtime.LOGS_DIR.resolve().is_relative_to(root)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/verify.py
+
       - name: Verify SAPI and FFmpeg dependencies
         shell: pwsh
         run: python -c "import sys; sys.argv=['package_runtime','--self-test']; import build_support.package_runtime"

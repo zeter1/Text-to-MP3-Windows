@@ -177,6 +177,9 @@ class ProblemLoggerEventsMixin:
                 "global_copy_clipboard_read_failed",
                 "workspace_tab_file_delete_failed",
                 "workspace_save_lock_recovered",
+                "preview_started",
+                "preview_finished",
+                "preview_sapi_stage",
             }
             or event_type.startswith("task_")
         )
@@ -309,10 +312,10 @@ class ProblemLoggerEventsMixin:
                     self.last_live_summary_perf = now_perf
                     try:
                         self._write_diagnostic_summary("running")
-                    except Exception:
-                        pass
-        except Exception:
-            self.disabled = True
+                    except Exception as exc:
+                        self._record_diagnostic_failure("live_summary_write", exc)
+        except Exception as exc:
+            self._record_diagnostic_failure("event_write", exc)
 
     def task_started(self, task_id: str, payload: dict) -> None:
         with self.state_lock:
@@ -557,6 +560,6 @@ class ProblemLoggerEventsMixin:
             )
             self._write_diagnostic_summary("running")
             return str(json_path)
-        except Exception:
-            self.disabled = True
+        except Exception as exc:
+            self._record_diagnostic_failure("error_write", exc)
             return ""

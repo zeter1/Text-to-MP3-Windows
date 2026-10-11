@@ -6,6 +6,7 @@ from .text_processing import *
 from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
+from .sapi_preview_diagnostics import release_preview_exception_frames
 
 class TaskPreviewPlayerMixin:
     def _start_preview_worker(
@@ -172,6 +173,8 @@ class TaskPreviewPlayerMixin:
                         elapsed_sec=info.get("elapsed_sec"),
                         paused=info.get("paused"),
                         source_mode=source_mode,
+                        stream_id=info.get("stream_id"), block=info.get("block"),
+                        sapi_status=info.get("sapi_status"),
                     )
 
                 def report_state(state: str) -> None:
@@ -209,6 +212,13 @@ class TaskPreviewPlayerMixin:
                         )
                     )
 
+                def report_diagnostic(info: dict) -> None:
+                    self.app.logger.event(
+                        "preview_sapi_stage", task_id=self.task_id,
+                        tab_id=self.workspace_id, preview_run_id=preview_run_id,
+                        **info,
+                    )
+
                 preview_result = preview_sapi_text(
                     text=text,
                     voice_description=voice,
@@ -223,19 +233,21 @@ class TaskPreviewPlayerMixin:
                     heartbeat_callback=report_heartbeat,
                     checkpoint_callback=report_checkpoint,
                     segment_done_callback=report_segment_done,
+                    diagnostic_callback=report_diagnostic,
                 )
                 preview_result["preview_run_id"] = preview_run_id
                 self.app.events.put(
                     (self.task_id, "preview_done", preview_result)
                 )
             except Exception as exc:
+                trace_text = release_preview_exception_frames(exc, detach=True)
                 self.app.events.put(
                     (
                         self.task_id,
                         "preview_error",
                         {
                             "exc": exc,
-                            "traceback": traceback.format_exc(),
+                            "traceback": trace_text,
                             "context": {
                                 "chars": len(text),
                                 "tab_id": self.workspace_id,
@@ -326,6 +338,10 @@ class TaskPreviewPlayerMixin:
             pass
 
     def handle_preview_segment_done(self, info: dict) -> None:
+        run_id = str(info.get("preview_run_id") or "")
+        if (not info.get("playback_verified") or not run_id
+                or run_id != self.current_preview_run_id):
+            return
         try:
             spoken_text = str(info.get("text") or "")
             self.session_read_segments += 1
@@ -335,14 +351,6 @@ class TaskPreviewPlayerMixin:
             pass
 
         if not bool(self.delete_read_text_var.get()):
-            return
-
-        run_id = str(info.get("preview_run_id") or "")
-        if (
-            run_id
-            and self.current_preview_run_id
-            and run_id != self.current_preview_run_id
-        ):
             return
 
         # Keep the newest completed sentence as a one-sentence buffer.

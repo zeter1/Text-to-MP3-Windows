@@ -86,7 +86,7 @@ py text_to_mp3.py
 
 ## Architecture
 
-The current application remains a large single-file Windows module, `text_to_mp3.py`. Several logical subsystems are separated inside it:
+`text_to_mp3.py` is a compact entry point. Implementation modules live in `tts_app/`; see the [project overview](docs/PROJECT.md) and [code map](docs/CODEMAP.md):
 
 ```text
 Tkinter UI / tabs
@@ -102,7 +102,7 @@ FFmpeg
 recovery + backups + diagnostics
 ```
 
-Windows hotkeys, selected-text transfer, autostart, and state persistence are additional subsystems. This reflects a working legacy application; further safe module decomposition remains a separate engineering task.
+Separate modules own Windows hotkeys, selected-text transfer, autostart, and state persistence. Compatibility facades preserve existing imports.
 
 ## Typical uses
 
@@ -126,11 +126,11 @@ The application can store settings, tab state, recovery data, text backups for l
 ## Project verification
 
 ```powershell
-python -m compileall -q text_to_mp3.py tests
 python -m unittest discover -s tests -v
+python tools/verify.py
 ```
 
-GitHub Actions runs compile checks and offline repository-contract regression tests. These validate syntax, required runtime-data exclusions, and key dependency contracts without launching SAPI/COM.
+Run the local `tools/verify.py` in a source-only mirror without user data; see the [isolation contract](docs/LOGGING_FOR_AI.md). GitHub Actions checks repository contracts, imports, preview/hotkey regressions, and logging in a clean checkout. Commits marked `[package]` also build Windows binaries and run the packaged SAPI/FFmpeg self-test.
 
 ## Limitations and verification level
 
@@ -146,7 +146,7 @@ The application targets Windows 10/11 because it uses Microsoft SAPI, COM, Win32
 
 ## Version
 
-Current source version: **4.2 FULL**.
+Current source version: **4.2.2 FULL**. See [CHANGELOG.md](CHANGELOG.md); Windows builds are identified by a `build-<commit>` tag.
 
 ## Documentation and support
 

@@ -6,9 +6,6 @@ from .problem_logger_compact import compact_log_value, compact_text_state, write
 
 class ProblemLoggerSummaryMixin:
     def _write_diagnostic_summary(self, status: str) -> None:
-        if self.disabled:
-            return
-
         with self.summary_lock:
             with self.state_lock:
                 active = {
@@ -53,7 +50,7 @@ class ProblemLoggerSummaryMixin:
                 }
             }
             health = (
-                "error"
+                "diagnostic_failure" if self.diagnostic_integrity != "ok" else "error"
                 if error_snapshot
                 else "warning"
                 if warnings_snapshot
@@ -112,6 +109,8 @@ class ProblemLoggerSummaryMixin:
                 "session_id": self.session_id,
                 "status": status,
                 "health": health,
+                "diagnostic_integrity": self.diagnostic_integrity,
+                "diagnostic_failures": self.diagnostic_failure_count,
                 "app": {
                     "version": APP_VERSION,
                     "python": sys.version.split()[0],
@@ -160,6 +159,7 @@ class ProblemLoggerSummaryMixin:
                 "session_id": self.session_id,
                 "session_status": status,
                 "health": health,
+                "diagnostic_integrity": self.diagnostic_integrity,
                 "read_first": self.ai_read_first_file.name,
                 "primary_problem": primary_problem,
                 "warnings": warnings_snapshot[:5],

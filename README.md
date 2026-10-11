@@ -95,7 +95,7 @@ py text_to_mp3.py
 
 ## Архитектура
 
-Текущая версия приложения остаётся крупным single-file Windows-модулем `text_to_mp3.py`. Внутри него логически разделены несколько подсистем:
+`text_to_mp3.py` — компактная точка входа. Реализация разделена на модули в `tts_app/`; владельцы подсистем и постоянных данных описаны в [обзоре проекта](docs/PROJECT.md) и [карте кода](docs/CODEMAP.md):
 
 ```text
 Tkinter UI / tabs
@@ -111,7 +111,7 @@ FFmpeg
 recovery + backups + diagnostics
 ```
 
-Отдельно работают Windows hotkeys, перенос выделенного текста, автозапуск и слой сохранения состояния. Такая структура отражает рабочее legacy-приложение; дальнейшая безопасная декомпозиция на модули остаётся отдельной инженерной задачей.
+Отдельные модули отвечают за Windows hotkeys, перенос выделенного текста, автозапуск и сохранение состояния. Совместимые фасады сохраняют прежние точки импорта.
 
 ## Для чего подходит
 
@@ -135,11 +135,11 @@ recovery + backups + diagnostics
 ## Проверка проекта
 
 ```powershell
-python -m compileall -q text_to_mp3.py tests
 python -m unittest discover -s tests -v
+python tools/verify.py
 ```
 
-GitHub Actions выполняет compile и offline repository-contract regression tests. Они проверяют синтаксис, обязательные runtime-data exclusions и ключевые зависимости без запуска SAPI/COM.
+Локальный `tools/verify.py` запускают в отдельной копии исходников без пользовательских данных: [правила изоляции](docs/LOGGING_FOR_AI.md). GitHub Actions проверяет repository contracts, импорты, preview/hotkey regression tests и логи в чистом checkout. Для коммитов `[package]` дополнительно выполняются Windows-сборка и packaged SAPI/FFmpeg self-test.
 
 ## Ограничения и уровень проверки
 
@@ -155,7 +155,7 @@ GitHub Actions выполняет compile и offline repository-contract regress
 
 ## Версия
 
-Текущая версия в исходном коде: **4.2 FULL**.
+Текущая версия в исходном коде: **4.2.2 FULL**. Изменения записаны в [CHANGELOG.md](CHANGELOG.md); Windows-сборки различаются тегом `build-<commit>`.
 
 ## Документация и поддержка
 

@@ -4,6 +4,10 @@ from .runtime import *
 from .text_processing import *
 
 from .sapi_core import *
+from .sapi_preview_diagnostics import (
+    preview_diagnostic, preview_sapi_snapshot, verify_preview_stream,
+    preview_output_inventory, release_preview_exception_frames,
+)
 
 def preview_sapi_text(
     text: str,
@@ -19,6 +23,7 @@ def preview_sapi_text(
     heartbeat_callback=None,
     checkpoint_callback=None,
     segment_done_callback=None,
+    diagnostic_callback=None,
 ) -> dict:
     """
     Read text through one persistent SpVoice.
@@ -36,12 +41,28 @@ def preview_sapi_text(
     import win32com.client  # type: ignore
 
     pythoncom.CoInitialize()
+    voice = None
+    status = None
+    primary_error = None
     started = time.perf_counter()
     stopped = False
     completed_chunks = 0
     actual_audio_output = ""
     sapi_paused = False
     last_heartbeat = started
+    stream_id = None
+    block_index = None
+    before_stream = {}
+
+    def diagnose(stage: str, current_voice=None, **fields) -> dict:
+        return preview_diagnostic(
+            diagnostic_callback, stage, current_voice,
+            elapsed_sec=round(time.perf_counter() - started, 3),
+            requested_audio_output=audio_output_description,
+            actual_audio_output=actual_audio_output,
+            stream_id=stream_id, block=block_index, before_status=before_stream,
+            **fields,
+        )
 
     segments = build_preview_segments(text)
 
@@ -190,6 +211,9 @@ def preview_sapi_text(
                     pause_event.is_set()
                     or sapi_paused
                 ),
+                "stream_id": stream_id,
+                "block": block_index,
+                "sapi_status": preview_sapi_snapshot(voice),
             }
         )
         last_heartbeat = now_perf
@@ -246,16 +270,20 @@ def preview_sapi_text(
                 "start": int(segment["start"]),
                 "end": int(segment["end"]),
                 "text": str(segment["text"]),
+                "playback_verified": True,
             }
         )
 
     try:
+        diagnose("com_initialized")
         voice = win32com.client.Dispatch("SAPI.SpVoice")
+        diagnose("voice_created", voice, **preview_output_inventory(voice))
         set_voice_by_description(voice, voice_description)
         actual_audio_output = set_audio_output_by_description(
             voice,
             audio_output_description,
         )
+        diagnose("output_selected", voice)
 
         native_rate, rate_overflow = split_extended_sapi_rate(rate)
         voice.Rate = int(native_rate)
@@ -276,7 +304,7 @@ def preview_sapi_text(
                 ),
             }
 
-        for block in blocks:
+        for block_index, block in enumerate(blocks, start=1):
             if stop_event.is_set():
                 stopped = True
                 break
@@ -330,10 +358,14 @@ def preview_sapi_text(
             emit_progress(active_meta)
             last_active_global = int(active_meta["global_index"])
 
-            voice.Speak(
+            before_stream = preview_sapi_snapshot(voice)
+            stream_id = int(voice.Speak(
                 speak_text,
                 flags | SVS_FLAGS_ASYNC,
-            )
+            ))
+            diagnose("stream_submitted", voice,
+                               chars=len(block_text), segments=len(block["segments"]),
+                               text_sha256=hashlib.sha256(block_text.encode("utf-8")).hexdigest()[:16])
 
             while True:
                 raw_word_position = None
@@ -396,18 +428,8 @@ def preview_sapi_text(
                         active_meta["global_index"]
                     )
 
-                    # Entering sentence N means every earlier sentence in this
-                    # stream has finished and can be deleted/logged safely.
-                    active_local_index = block["segments"].index(
-                        active_meta
-                    )
-                    while done_local_count < active_local_index:
-                        emit_segment_done(
-                            block["segments"][
-                                done_local_count
-                            ]
-                        )
-                        done_local_count += 1
+                    # Status assists highlighting only. A synthesized position
+                    # is not proof that this output has played the block.
 
                     if active_global != last_active_global:
                         emit_progress(active_meta)
@@ -420,17 +442,7 @@ def preview_sapi_text(
 
                 if stop_event.is_set():
                     stopped = True
-                    try:
-                        if sapi_paused:
-                            voice.Resume()
-                            sapi_paused = False
-                        voice.Speak(
-                            "",
-                            SVSFPURGE_BEFORE_SPEAK
-                            | SVS_FLAGS_ASYNC,
-                        )
-                    except Exception:
-                        pass
+                    diagnose("stop_observed", voice)
                     break
 
                 if pause_event.is_set() and not sapi_paused:
@@ -495,6 +507,7 @@ def preview_sapi_text(
 
                     voice.Pause()
                     sapi_paused = True
+                    diagnose("paused", voice)
 
                     emit_checkpoint(
                         active_meta,
@@ -509,14 +522,20 @@ def preview_sapi_text(
                 elif not pause_event.is_set() and sapi_paused:
                     voice.Resume()
                     sapi_paused = False
+                    diagnose("resumed", voice)
                     if state_callback is not None:
                         state_callback("running")
 
                 if not sapi_paused and bool(
                     voice.WaitUntilDone(40)
                 ):
-                    # Anything not observed by status polling is definitely done
-                    # once this entire stream reports completion.
+                    pythoncom.PumpWaitingMessages()
+                    after_stream = diagnose("stream_completion_claimed", voice)
+                    if stop_event.is_set():
+                        stopped = True
+                        break
+                    verify_preview_stream(stream_id, before_stream, after_stream)
+                    diagnose("stream_verified", voice)
                     while done_local_count < len(
                         block["segments"]
                     ):
@@ -552,5 +571,37 @@ def preview_sapi_text(
                 3,
             ),
         }
+    except BaseException as exc:
+        primary_error = exc
+        release_preview_exception_frames(exc)
+        diagnose("failed", voice, exception_type=type(exc).__name__)
+        raise
     finally:
-        pythoncom.CoUninitialize()
+        cleanup_error = None
+        if voice is not None:
+            try:
+                diagnose("cleanup_started", voice)
+                if sapi_paused:
+                    voice.Resume()
+                    sapi_paused = False
+                voice.Speak("", SVSFPURGE_BEFORE_SPEAK | SVS_FLAGS_ASYNC)
+                if not voice.WaitUntilDone(1000):
+                    raise TimeoutError("SAPI не подтвердил остановку за 1000 мс.")
+                diagnose("cleanup_completed", voice)
+            except Exception as exc:
+                cleanup_error = exc
+                release_preview_exception_frames(exc)
+                diagnose("cleanup_failed", voice, exception_type=type(exc).__name__)
+        # Release every owned COM wrapper while this apartment still exists.
+        status = None
+        voice = None
+        try:
+            pythoncom.CoUninitialize()
+        except Exception as exc:
+            diagnose("com_release_failed", exception_type=type(exc).__name__)
+            if primary_error is None and cleanup_error is None:
+                raise
+        else:
+            diagnose("com_released")
+        if cleanup_error is not None and primary_error is None:
+            raise cleanup_error

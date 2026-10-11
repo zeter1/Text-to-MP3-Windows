@@ -30,7 +30,7 @@ dist\Text-to-MP3-Windows\Text-to-MP3-Windows.exe
 - устанавливает зависимости из `requirements.txt` (`pywin32`, `imageio-ffmpeg`);
 - устанавливает PyInstaller 6.22.3 и hooks;
 - выполняет `pip check`;
-- компилирует большой основной модуль;
+- компилирует точку входа и packaging hook; CI дополнительно проверяет весь пакет `tts_app` и regression gate;
 - проверяет Windows SAPI через COM;
 - проверяет, что `imageio-ffmpeg` реально содержит рабочий `ffmpeg.exe`;
 - запускает offline repository tests;

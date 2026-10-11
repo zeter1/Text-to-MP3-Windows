@@ -379,19 +379,24 @@ class AppHotkeysMixin:
         captured = sanitize_hotkey_capture_text(
             raw_captured
         )
-        if not captured:
+        # The whitelist can leave only punctuation after removing Latin text.
+        # SAPI legitimately emits no audio for it; do not enqueue such a capture
+        # or misreport its silence as an audio-output failure.
+        if not any(ch.isalnum() for ch in captured):
             self.logger.event(
                 "global_copy_filtered_empty",
                 task_id=task.task_id,
                 tab_id=task.workspace_id,
                 hotkey=hotkey,
                 raw_chars=len(raw_captured),
+                filtered_chars=len(captured),
+                reason="no_letters_or_digits",
                 source_process=source_process,
                 source_pid=source_pid,
                 copy_latency_ms=copy_latency_ms,
             )
             task.status_var.set(
-                "В выделении нет русских букв, цифр, точек или запятых."
+                "После фильтрации нет русских букв или цифр для чтения."
             )
             return
 

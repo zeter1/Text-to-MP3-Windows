@@ -190,6 +190,14 @@ def classify_error(stage: str, exc: BaseException, message: str) -> dict:
             "Проверить audio_outputs_loaded и выбранное устройство.",
             "Проверить set_audio_output_by_description() в tts_app/sapi_core.py.",
         ]
+    elif exception_name == "PreviewPlaybackError":
+        code = "SAPI_PLAYBACK_UNVERIFIED"
+        owner = "tts_app/sapi_preview.py / tts_app/sapi_preview_diagnostics.py"
+        likely_cause = "SAPI сообщил завершение без подтверждения вывода; аппаратная причина неизвестна."
+        suggested_checks = [
+            "По preview_run_id сверить stream_submitted, stream_completion_claimed, failed и cleanup в preview_sapi_stage.",
+            "Сверить CurrentStreamNumber/LastHResult и прирост CurrentDevicePosition относительно before_status.",
+        ]
     elif "ffmpeg" in stage_text or "ffmpeg" in message_text:
         code = "FFMPEG_FAILURE"
         owner = "tts_app/ffmpeg_tools.py"
