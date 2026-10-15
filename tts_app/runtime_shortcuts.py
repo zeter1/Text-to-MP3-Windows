@@ -71,3 +71,4 @@ def handle_text_ctrl_shortcut(widget: tk.Text, event) -> str | None:
 
     except tk.TclError:
         return "break"
+

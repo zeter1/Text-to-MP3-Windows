@@ -50,11 +50,12 @@ class AppEventDispatchMixin:
                         context={},
                     )
 
-                    messagebox.showerror(
-                        APP_TITLE,
-                        "Не удалось получить список SAPI-голосов.\n\n"
-                        f"{exc}",
-                    )
+                    if not self.shutdown_in_progress:
+                        messagebox.showerror(
+                            APP_TITLE,
+                            "Не удалось получить список SAPI-голосов.\n\n"
+                            f"{exc}",
+                        )
                     continue
 
                 if kind == "audio_outputs_loaded":
@@ -260,10 +261,11 @@ class AppEventDispatchMixin:
                     )
                     task.set_job_idle()
                     task.status_var.set("Остановлено.")
-                    messagebox.showinfo(
-                        APP_TITLE,
-                        str(info["message"]),
-                    )
+                    if not self.shutdown_in_progress:
+                        messagebox.showinfo(
+                            APP_TITLE,
+                            str(info["message"]),
+                        )
 
                 elif kind == "job_error":
                     info = payload  # type: ignore[assignment]
@@ -289,12 +291,13 @@ class AppEventDispatchMixin:
                             + str(info.get("recovery_dir") or "")
                         )
 
-                    messagebox.showerror(
-                        APP_TITLE,
-                        str(info.get("user_message") or info["exc"])
-                        + diagnostic
-                        + recovery_note,
-                    )
+                    if not self.shutdown_in_progress:
+                        messagebox.showerror(
+                            APP_TITLE,
+                            str(info.get("user_message") or info["exc"])
+                            + diagnostic
+                            + recovery_note,
+                        )
 
                 elif kind == "preview_done":
                     info = payload if isinstance(payload, dict) else {}
@@ -465,11 +468,12 @@ class AppEventDispatchMixin:
                         else "Ошибка воспроизведения."
                     )
 
-                    messagebox.showerror(
-                        APP_TITLE,
-                        "Не удалось воспроизвести текст.\n\n"
-                        f"{exc}",
-                    )
+                    if not self.shutdown_in_progress:
+                        messagebox.showerror(
+                            APP_TITLE,
+                            "Не удалось воспроизвести текст.\n\n"
+                            f"{exc}",
+                        )
 
         except queue.Empty:
             pass

@@ -37,7 +37,9 @@ class AppShutdownMixin:
             self.save_settings()
         except Exception:
             pass
+        self.ui_watchdog.stop()
         self.logger.close(status=status)
+        self.exception_hooks.uninstall()
         self.root.destroy()
 
     def _poll_shutdown(self) -> None:

@@ -6,6 +6,7 @@ from .text_processing import *
 from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
+from .ui_stall_diagnostics import ui_operation
 
 class TaskFileIoMixin:
     def load_file(self) -> None:
@@ -46,8 +47,10 @@ class TaskFileIoMixin:
             reason="load_new_text",
             schedule_save=False,
         )
-        self.text_box.delete("1.0", "end")
-        self.text_box.insert("1.0", text)
+        self.configure_text_view_for_content(text, origin="file_load")
+        with ui_operation(self.app, "load_file_into_text", text_chars=len(text)):
+            self.text_box.delete("1.0", "end")
+            self.text_box.insert("1.0", text)
         self.text_box.edit_modified(False)
         self.workspace_dirty = True
 
@@ -79,6 +82,7 @@ class TaskFileIoMixin:
             schedule_save=False,
         )
         self.text_box.delete("1.0", "end")
+        self._text_metrics_cache = None
         self.workspace_dirty = True
         self.status_var.set("Текст очищен.")
         self.schedule_queue_status_refresh()

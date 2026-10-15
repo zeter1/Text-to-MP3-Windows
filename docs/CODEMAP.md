@@ -6,6 +6,8 @@
 |---|---|---|
 | запуск программы / composition приложения | `text_to_mp3.py`, `tts_app/app.py` | — |
 | constants, common formatting/process helpers | `tts_app/runtime_core.py` | `tts_app/runtime.py` только для compatibility export |
+| UI freeze watchdog, snapshot стека, uncaught callbacks/threads, single-instance Windows mutex | `tts_app/ui_stall_diagnostics.py` | `app_workspace_init.py`, `app_shutdown.py`, `app.py` |
+| ускорение огромных строк, text metrics cache и word wrap | `tts_app/task_text_performance.py` | `task_ui_build.py`, `task_ui_status.py`, `task_capture.py` |
 | compact text diagnostics | `tts_app/runtime_diagnostics.py` | `runtime_core.py` |
 | WAV/ffprobe/final MP3 validation/disk forecast | `tts_app/runtime_audio.py` | `ffmpeg_tools.py` |
 | recovery scan / existing WAV checkpoints | `tts_app/runtime_recovery.py` | `runtime_audio.py` |

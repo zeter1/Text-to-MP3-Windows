@@ -49,6 +49,18 @@ class ProblemLoggerSummaryMixin:
                     "event_bytes_written",
                 }
             }
+            # The watchdog writes to its own directory even while Tk is frozen;
+            # never report a clean health verdict when hang evidence exists.
+            all_hang_files = sorted(
+                (self.session_dir / "hangs").glob("hang_*.json"), reverse=True,
+            )
+            hang_files = all_hang_files[:3]
+            hang_refs = [f"hangs/{item.name}" for item in hang_files]
+            if hang_refs and not stats_snapshot.get("ui_stalls_recovered"):
+                warnings_snapshot.append(
+                    "Есть snapshot зависания Tk без подтверждённого восстановления. "
+                    "Смотрите ui_stalls.latest_snapshots."
+                )
             health = (
                 "diagnostic_failure" if self.diagnostic_integrity != "ok" else "error"
                 if error_snapshot
@@ -93,7 +105,10 @@ class ProblemLoggerSummaryMixin:
                 "latest_text_state_by_tab": latest_text_state_snapshot,
             }
 
+            # Snapshot files are independent of the normal logger: present
+            # a bounded pointer even if a UI stall was the only failure.
             next_files: list[str] = []
+            next_files.extend(hang_refs)
             if primary_problem and primary_problem.get("file"):
                 next_files.append(str(primary_problem["file"]))
             run_id = (primary_problem or {}).get("run_id")
@@ -136,6 +151,12 @@ class ProblemLoggerSummaryMixin:
                 "listening": listening_summary,
                 "recent_signals": recent_signals_snapshot[-6:],
                 "previous_unclean_sessions": self.previous_unclean_sessions[-2:],
+                "ui_stalls": {
+                    "snapshot_count": len(all_hang_files),
+                    "latest_snapshots": hang_refs,
+                    "error_code": "UI_MAIN_THREAD_STALL" if hang_refs else None,
+                    "note": "Raw snapshot is written by an independent watchdog when Tk stalls.",
+                },
                 "log_volume": {
                     "events_written": int(stats_snapshot.get("events_written") or 0),
                     "events_suppressed": int(stats_snapshot.get("events_suppressed") or 0),
@@ -145,6 +166,8 @@ class ProblemLoggerSummaryMixin:
                 },
                 "open_next_if_needed": next_files,
                 "ai_instruction": (
+                    "При UI freeze сначала смотри ui_stalls.latest_snapshots: "
+                    "Python stack main Tk thread + operation. "
                     "Ищи first divergence по stage/error_code/recent_signals. "
                     "Сначала открой primary_problem.file. Не читай весь events.jsonl, "
                     "пока summary/error JSON не недостаточны."

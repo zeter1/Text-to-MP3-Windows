@@ -28,7 +28,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 
 
 APP_TITLE = "Текст → MP3 (Windows SAPI)"
-APP_VERSION = "4.2.2 FULL"
+APP_VERSION = "4.2.4 FULL"
 
 DEFAULT_VOICE_HINT = "Microsoft Irina Desktop"
 DEFAULT_AUDIO_OUTPUT_LABEL = "Системное устройство по умолчанию"
@@ -331,3 +331,5 @@ def safe_disk_free_bytes(path: Path) -> int | None:
         return int(shutil.disk_usage(path).free)
     except Exception:
         return None
+
+

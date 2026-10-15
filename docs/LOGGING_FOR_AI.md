@@ -11,6 +11,48 @@
 4. `events*.jsonl` только точечно по `run_id`, `preview_run_id`, `tab_id`, `stage` или времени
 5. `diagnostic_summary.json` — compatibility-указатель, а не основной подробный отчёт
 
+## Диагностика зависания GUI (4.2.3)
+
+Если интерфейс не отвечает более ~3 секунд, независимый `TkUiStallWatchdog` сохраняет
+`session_*/hangs/hang_YYYYMMDD_HHMMSS_<id>.json` **без обращения к Tk и без lock обычного логгера**.
+Там есть: `error_code=UI_MAIN_THREAD_STALL`, задержка в миллисекундах на момент снимка,
+`operation` и `operation_context`, текущая версия, идентификатор сессии,
+стек главного потока Tk + до 7 фоновых потоков (`module`, `function`, `line`).
+Ограничение — максимум 5 снимков на сессию, один на непрерывное зависание;
+исходный текст, локальные переменные, содержимое clipboard, строки исходного кода
+и полные файловые пути не сохраняются. При блокировке GIL снимок может задержаться.
+
+После восстановления Tk пишет `ui_stall_recovered` с `snapshot_file` и
+`stall_duration_ms` в `events.jsonl`. Долгие UI-операции отмечаются
+`ui_operation_slow` с продолжительностью и числовыми размерами входных данных;
+похожие сигналы агрегируются не чаще раза в 10 секунд на этап.
+`AI_READ_FIRST.json` содержит `ui_stalls.latest_snapshots` и указатели в
+`open_next_if_needed`, а `health` становится как минимум warning при обнаруженных
+hang-файлах. **Если программа зависла окончательно или была принудительно закрыта,
+summary может остаться старым: проверьте сам каталог `hangs/` напрямую.**
+
+Необработанные исключения Tk, потоков и процесса пишутся с кодами
+`TK_CALLBACK_UNCAUGHT`, `WORKER_THREAD_UNCAUGHT`, `PROCESS_UNCAUGHT`
+в `errors/*.json`; прежнее стандартное сообщение Python при этом сохраняется.
+Свой класс ошибки и traceback важнее любого предполагаемого `likely_cause`.
+
+Инструмент записи НЕ является crash dump: при завершении питания/kill -9,
+системном зависании, заблокированном GIL или недоступном диске файлы
+могут не появиться. Это не доказывает, что зависания не было.
+
+## Большой текст и предотвращение подвисаний
+
+Tk автоматически отключает визуальный перенос длинной логической строки
+(порог 20 000 символов), но не меняет пользовательский текст для чтения или
+сохранения. Горизонтальная прокрутка доступна в окне. Событие
+`large_text_view_optimized` сообщает размеры без записи содержимого.
+Подсчёт предложений/символов и SHA-16 кешируются между модификациями; не
+перечитываются повторно только ради очередного `text_state`.
+`ui_operation_slow` отмечает `restore_tab_text`, `workspace_save`,
+`queue_text_metrics`, `log_text_state_metrics`, `append_captured_text` и др.
+Первопричину следующего медленного эпизода ищите по `hang.operation` и
+последним `ui_operation_slow`, а не по совпадению времени с SAPI.
+
 ## Error record schema
 
 Ключевые поля:
@@ -71,4 +113,4 @@ python tools/verify.py
 
 Gate запускать в source mirror: импорты вычисляют storage от `__file__` и создают `.write_test`; новый cwd или TEMP не изолируют пользовательские данные. Копировать только `text_to_mp3.py`, `tts_app/*.py`, `tools/*.py`, без runtime/user data. Generated indexes после принятого gate переносить из зеркала, не редактировать вручную.
 
-В gate входят `tools/test_logging_compact.py` (dedup/grouping/redaction, critical events после budget, error classification, event/summary write failure, emergency/collision) и `tools/test_preview_audio.py` (failed async без acknowledgement, healthy/partial/Stop, повторный stream ID без audio delta, UI guard, COM lifetime и exception queue). Эти тесты используют свои synthetic source mirrors и fake COM; реальный GUI/SAPI/устройство/EXE ими не проверяется.
+В gate входят `tools/test_logging_compact.py` (dedup/grouping/redaction, critical events после budget, error classification, event/summary write failure, emergency/collision) и `tools/test_ui_diagnostics.py` (снимки зависания, приватность, uncaught hooks, огромные строки), `tools/test_preview_audio.py` (failed async без acknowledgement, healthy/partial/Stop, повторный stream ID без audio delta, UI guard, COM lifetime и exception queue). Эти тесты используют свои synthetic source mirrors и fake COM; реальный GUI/SAPI/устройство/EXE ими не проверяется.

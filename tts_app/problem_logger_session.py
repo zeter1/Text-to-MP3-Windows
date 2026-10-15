@@ -92,6 +92,10 @@ class ProblemLoggerSessionMixin:
             "events_suppressed": 0,
             "event_bytes_written": 0,
             "unique_errors": 0,
+            "ui_stalls_recovered": 0,
+            "ui_slow_operations": 0,
+            "uncaught_ui_exceptions": 0,
+            "uncaught_worker_exceptions": 0,
         }
 
         try:

@@ -8,6 +8,7 @@ from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
 from .widgets import *
+from .ui_stall_diagnostics import ui_operation
 
 class AppWorkspaceSaveMixin:
     def schedule_workspace_save(
@@ -40,6 +41,10 @@ class AppWorkspaceSaveMixin:
         )
 
     def save_workspace(self) -> None:
+        with ui_operation(self, "workspace_save", tabs=len(self.tabs)):
+            self._save_workspace_impl()
+
+    def _save_workspace_impl(self) -> None:
         self.workspace_after_id = None
         self.workspace_save_due_perf = None
         save_started = time.perf_counter()

@@ -11,6 +11,11 @@ class ProblemLoggerInsightsMixin:
             warnings.append(
                 "Обнаружены предыдущие сессии, завершившиеся аварийно."
             )
+        if stats.get("ui_stalls_recovered"):
+            warnings.append(
+                f"Главный поток GUI зависал: {stats['ui_stalls_recovered']} раз. "
+                "Смотрите snapshot_file в ui_stall_recovered и hangs/*.json."
+            )
         if stats["errors"]:
             warnings.append(
                 f"Зафиксировано ошибок: {stats['errors']}."

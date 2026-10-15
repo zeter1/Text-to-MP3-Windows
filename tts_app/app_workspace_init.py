@@ -7,6 +7,7 @@ from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
 from .widgets import *
+from .ui_stall_diagnostics import UiStallMonitor, ExceptionHooks, ui_operation
 
 class AppWorkspaceInitMixin:
     def __init__(self, root: tk.Tk) -> None:
@@ -15,6 +16,9 @@ class AppWorkspaceInitMixin:
         self.root = root
         self.settings = load_settings()
         self.logger = ProblemLogger()
+        self.exception_hooks = ExceptionHooks(root, self.logger)
+        self.ui_watchdog = UiStallMonitor(root, self.logger)
+        self.ui_watchdog.start()
 
         try:
             removed_backups, failed_backups = (
@@ -124,8 +128,10 @@ class AppWorkspaceInitMixin:
         )
         self.settings["autostart_windows"] = autostart_enabled
 
-        self._build_ui()
-        self._restore_workspace()
+        with ui_operation(self, "build_app_ui"):
+            self._build_ui()
+        with ui_operation(self, "restore_workspace"):
+            self._restore_workspace()
         self._activate_restored_tab_hotkeys()
 
         legacy_removed = cleanup_legacy_temp_workdirs()

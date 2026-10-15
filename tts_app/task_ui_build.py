@@ -6,6 +6,7 @@ from .text_processing import *
 from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
+from .ui_stall_diagnostics import ui_operation
 
 class TaskUiBuildMixin:
     def __init__(
@@ -137,13 +138,26 @@ class TaskUiBuildMixin:
         self.pitch_value_var = tk.StringVar(value=str(self.pitch_var.get()))
 
         self.workspace_dirty = False
+        self._text_metrics_cache = None
+        self._display_long_line = False
+        self._word_wrap_auto_disabled = False
+        self._manual_wrap_large_line = False
+        self._word_wrap_var = tk.BooleanVar(value=True)
         self.custom_title = bool(custom_title)
         self.restored_title = restored_title or f"Вкладка {number}"
 
         self._build_ui()
 
         if restored_text:
-            self.text_box.insert("1.0", restored_text)
+            self.configure_text_view_for_content(restored_text, origin="restore")
+            # Restored data is not a user edit; don't fill Tk's undo history.
+            with ui_operation(app, "restore_tab_text", text_chars=len(restored_text)):
+                self.text_box.configure(undo=False)
+                try:
+                    self.text_box.insert("1.0", restored_text)
+                    self.text_box.edit_reset()
+                finally:
+                    self.text_box.configure(undo=True)
 
         self._restore_preview_bookmark_ui()
         self.text_box.edit_modified(False)
@@ -291,23 +305,31 @@ class TaskUiBuildMixin:
             anchor="e",
         ).pack(side="right", padx=(16, 0))
 
-        ttk.Label(
-            self.frame,
-            text="Текст для озвучки:",
-        ).pack(anchor="w", pady=(10, 4))
+        text_header = ttk.Frame(self.frame)
+        text_header.pack(fill="x", pady=(10, 4))
+        ttk.Label(text_header, text="Текст для озвучки:").pack(side="left")
+        ttk.Checkbutton(
+            text_header,
+            text="Перенос строк",
+            variable=self._word_wrap_var,
+            command=self._on_word_wrap_changed,
+        ).pack(side="right")
 
         text_frame = ttk.Frame(self.frame)
         text_frame.pack(fill="both", expand=True)
 
+        text_row = ttk.Frame(text_frame)
+        text_row.pack(side="top", fill="both", expand=True)
+
         self.text_box = tk.Text(
-            text_frame,
+            text_row,
             wrap="word",
             undo=True,
             font=("Segoe UI", 10),
         )
 
         scrollbar = ttk.Scrollbar(
-            text_frame,
+            text_row,
             orient="vertical",
             command=self.text_box.yview,
         )
@@ -336,6 +358,10 @@ class TaskUiBuildMixin:
 
         self.text_box.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        self.horizontal_scrollbar = ttk.Scrollbar(
+            text_frame, orient="horizontal", command=self.text_box.xview,
+        )
+        self.text_box.configure(xscrollcommand=self.horizontal_scrollbar.set)
 
         voice_group = ttk.LabelFrame(
             self.frame,

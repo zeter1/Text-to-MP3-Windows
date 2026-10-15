@@ -6,6 +6,8 @@ from .text_processing import *
 from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
+from .ui_stall_diagnostics import ui_operation
+from .task_text_performance import has_long_line
 
 class TaskCaptureMixin:
     def capture_external_selection(self) -> None:
@@ -27,7 +29,8 @@ class TaskCaptureMixin:
             )
             return False
 
-        old_text = self._full_text()
+        with ui_operation(self.app, "capture_old_text_snapshot"):
+            old_text = self._full_text()
         old_chars = len(old_text)
 
         separator = ""
@@ -60,15 +63,18 @@ class TaskCaptureMixin:
             except tk.TclError:
                 appended_at_mp3_source_end = False
 
-        self.text_box.insert("end-1c", added_text)
+        if self._word_wrap_var.get() and has_long_line(added_text):
+            self.configure_text_view_for_content(added_text, origin="external_capture")
+        with ui_operation(self.app, "append_captured_text", added_chars=len(added_text)):
+            self.text_box.insert("end-1c", added_text)
         if appended_at_mp3_source_end and separator == "\n":
             self.mp3_source_separator_pending = True
 
         captured_start_offset = old_chars + len(separator)
         captured_start_index = self._index_from_text_offset(captured_start_offset)
 
-        new_text = self._full_text()
-        new_chars = len(new_text)
+        self._text_metrics_cache = None
+        new_chars = old_chars + len(added_text)
 
         live_preview = bool(
             self.preview_thread and self.preview_thread.is_alive()
@@ -230,7 +236,8 @@ class TaskCaptureMixin:
 
         try:
             if append_to_end:
-                old_text = self._full_text()
+                with ui_operation(self.app, "paste_old_text_snapshot"):
+                    old_text = self._full_text()
                 old_chars = len(old_text)
 
                 # "Докинуть вниз": keep the appended block visually separate.
@@ -243,10 +250,13 @@ class TaskCaptureMixin:
                     separator = "\n"
 
                 added_text = separator + clipboard_text
-                self.text_box.insert("end-1c", added_text)
+                if self._word_wrap_var.get() and has_long_line(added_text):
+                    self.configure_text_view_for_content(added_text, origin="clipboard_append")
+                with ui_operation(self.app, "append_clipboard_text", added_chars=len(added_text)):
+                    self.text_box.insert("end-1c", added_text)
 
-                new_text = self._full_text()
-                new_chars = len(new_text)
+                self._text_metrics_cache = None
+                new_chars = old_chars + len(added_text)
 
                 # A running whole-text/cursor/bookmark preview must ultimately
                 # reach the new bottom as well. The current SAPI sentence is
@@ -335,7 +345,10 @@ class TaskCaptureMixin:
             except tk.TclError:
                 pass
 
-            self.text_box.insert(insert_index, clipboard_text)
+            if self._word_wrap_var.get() and has_long_line(clipboard_text):
+                self.configure_text_view_for_content(clipboard_text, origin="clipboard_paste")
+            with ui_operation(self.app, "paste_clipboard_text", added_chars=len(clipboard_text)):
+                self.text_box.insert(insert_index, clipboard_text)
             end_index = self.text_box.index(
                 f"{insert_index}+{len(clipboard_text)}c"
             )

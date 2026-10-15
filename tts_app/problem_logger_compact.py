@@ -180,7 +180,19 @@ def classify_error(stage: str, exc: BaseException, message: str) -> dict:
     severity = "error"
     likely_cause = "Ошибка возникла на указанном stage; уточнить по traceback и recent_signals."
 
-    if "не найдено в windows sapi" in message_text or (
+    if stage_text in {"tk_callback_uncaught", "worker_thread_uncaught", "process_uncaught"}:
+        code = {
+            "tk_callback_uncaught": "TK_CALLBACK_UNCAUGHT",
+            "worker_thread_uncaught": "WORKER_THREAD_UNCAUGHT",
+            "process_uncaught": "PROCESS_UNCAUGHT",
+        }[stage_text]
+        owner = "traceback code_locations"
+        likely_cause = "Необработанное исключение; конкретная причина определяется по traceback."
+        suggested_checks = [
+            "Посмотреть последний code_locations кадр приложения и класс исключения.",
+            "Сопоставить с recent_signals и связанным task/run ID.",
+        ]
+    elif "не найдено в windows sapi" in message_text or (
         "устройств" in message_text and "sapi" in message_text and "не найден" in message_text
     ):
         code = "AUDIO_OUTPUT_NOT_FOUND"

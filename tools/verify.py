@@ -11,6 +11,7 @@ COMMANDS = [
     [sys.executable, "tools/smoke_refactor.py"],
     [sys.executable, "tools/verify_structure.py"],
     [sys.executable, "tools/test_logging_compact.py"],
+    [sys.executable, "tools/test_ui_diagnostics.py"],
     [sys.executable, "tools/test_preview_audio.py"],
     [sys.executable, "tools/test_conversion_notifications.py"],
     [sys.executable, "tools/build_code_index.py"],

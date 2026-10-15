@@ -6,6 +6,7 @@ from .text_processing import *
 from .sapi import *
 from .ffmpeg_tools import *
 from .windows_tools import *
+from .ui_stall_diagnostics import ui_operation
 
 class TaskUiStatusMixin:
     def _on_text_modified(self, _event=None) -> None:
@@ -18,6 +19,7 @@ class TaskUiStatusMixin:
             return
 
         self.text_box.edit_modified(False)
+        self._text_changed_performance()
         self.workspace_dirty = True
 
         if (
@@ -58,23 +60,10 @@ class TaskUiStatusMixin:
     def refresh_queue_status(self) -> None:
         self.queue_status_after_id = None
         try:
-            text = self._full_text()
-            chars = len(text)
-            sentence_count = len(
-                re.findall(
-                    r"[.!?…]+(?=\s|$)",
-                    text,
-                )
-            )
-            if chars and sentence_count == 0:
-                sentence_count = max(
-                    1,
-                    sum(
-                        1
-                        for line in text.splitlines()
-                        if line.strip()
-                    ),
-                )
+            with ui_operation(self.app, "queue_text_metrics"):
+                metrics = self._text_metrics()
+            chars = metrics["chars"]
+            sentence_count = metrics["sentences"]
 
             label = (
                 f"В очереди: ~{sentence_count} предл. / "
@@ -113,8 +102,9 @@ class TaskUiStatusMixin:
             return
 
         try:
-            text = self._full_text()
-            chars = len(text)
+            with ui_operation(self.app, "log_text_state_metrics"):
+                metrics = self._text_metrics(include_hash=True)
+            chars = metrics["chars"]
             if (
                 self.preview_thread
                 and self.preview_thread.is_alive()
@@ -150,16 +140,9 @@ class TaskUiStatusMixin:
                 preview_run_id=self.current_preview_run_id,
                 reason=reason,
                 text_chars=chars,
-                text_sha256_16=hashlib.sha256(
-                    text.encode("utf-8")
-                ).hexdigest()[:16],
+                text_sha256_16=metrics["sha16"],
                 unread_chars=max(0, chars - unread_start),
-                sentence_endings_approx=len(
-                    re.findall(
-                        r"[.!?…]+(?=\s|$)",
-                        text,
-                    )
-                ),
+                sentence_endings_approx=metrics["sentences"],
                 delete_read_text=bool(
                     self.delete_read_text_var.get()
                 ),
@@ -247,7 +230,7 @@ class TaskUiStatusMixin:
             deleted_chars=chars,
             session_deleted_segments=self.session_deleted_segments,
             session_deleted_chars=self.session_deleted_chars,
-            text_chars=len(self._full_text()),
+            text_chars=self._text_metrics()["chars"],
         )
         self.log_text_state(
             f"delete_batch_{reason}",

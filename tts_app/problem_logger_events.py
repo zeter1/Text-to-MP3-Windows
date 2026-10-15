@@ -36,6 +36,10 @@ class ProblemLoggerEventsMixin:
         with self.state_lock:
             if event_type in {"error", "error_repeat"}:
                 self.stats["errors"] += 1
+                if fields.get("stage") == "tk_callback_uncaught":
+                    self.stats["uncaught_ui_exceptions"] += 1
+                if fields.get("stage") == "worker_thread_uncaught":
+                    self.stats["uncaught_worker_exceptions"] += 1
             elif event_type == "sapi_retry":
                 self.stats["sapi_retries"] += 1
             elif event_type == "slow_chunk":
@@ -112,6 +116,10 @@ class ProblemLoggerEventsMixin:
                         "ts": now_iso(),
                         **dict(fields),
                     }
+            elif event_type == "ui_stall_recovered":
+                self.stats["ui_stalls_recovered"] += 1
+            elif event_type == "ui_operation_slow":
+                self.stats["ui_slow_operations"] += 1
             elif event_type == "workspace_save_slow":
                 self.stats["workspace_slow_saves"] += 1
             elif event_type == "preview_finished":
@@ -177,6 +185,8 @@ class ProblemLoggerEventsMixin:
                 "global_copy_clipboard_read_failed",
                 "workspace_tab_file_delete_failed",
                 "workspace_save_lock_recovered",
+                "ui_stall_recovered",
+                "ui_operation_slow",
                 "preview_started",
                 "preview_finished",
                 "preview_sapi_stage",
@@ -303,6 +313,8 @@ class ProblemLoggerEventsMixin:
                 "preview_finished",
                 "text_state",
                 "workspace_save_slow",
+                "ui_stall_recovered",
+                "ui_operation_slow",
             }:
                 now_perf = time.perf_counter()
                 if (
