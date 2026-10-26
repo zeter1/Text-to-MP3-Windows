@@ -44,7 +44,8 @@ class FakeVoice:
         return types.SimpleNamespace(
             CurrentStreamNumber=0 if failed else 1,
             LastStreamNumberQueued=1, RunningState=0 if failed else 2,
-            LastHResult=0, InputWordPosition=0 if failed else self.step * 30,
+            LastHResult=-2147201015 if self.mode == "no_driver" else 0,
+            InputWordPosition=0 if failed else self.step * 30,
             InputWordLength=0 if failed else 5, InputSentencePosition=0,
         )
 
@@ -60,6 +61,8 @@ class FakeVoice:
         return 1
 
     def WaitUntilDone(self, timeout):
+        if self.closed and self.mode == "cleanup_timeout":
+            return False
         if self.closed or self.mode == "failed":
             return True
         self.step += 1
@@ -199,11 +202,37 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(tab.session_read_segments, 2)
         self.assertEqual(tab.session_read_chars, 38)
 
-    def test_cleanup_error_is_observable_after_valid_stream(self):
-        result, done, error = self.run_preview(FakeVoice("cleanup_failure"))
-        self.assertIsNone(result)
+    def test_completed_stream_does_not_purge_idle_audio_endpoint(self):
+        voice = FakeVoice("cleanup_timeout")
+        result, done, error = self.run_preview(voice)
+        self.assertIsNone(error)
         self.assertEqual(len(done), 2)
+        self.assertEqual(result["completed_chunks"], 2)
+        self.assertFalse(voice.closed, "idle SAPI endpoint was unnecessarily purged")
+
+    def test_cancel_still_purges_and_reports_cleanup_failure(self):
+        stop = threading.Event()
+        stop.set()
+        result, done, error = self.run_preview(FakeVoice("cleanup_failure"), stop)
+        self.assertIsNone(result)
+        self.assertEqual(done, [])
         self.assertEqual(str(error), "synthetic cleanup failure")
+
+    def test_cancel_cleanup_timeout_is_not_hidden(self):
+        stop = threading.Event()
+        stop.set()
+        result, done, error = self.run_preview(FakeVoice("cleanup_timeout"), stop)
+        self.assertIsNone(result)
+        self.assertEqual(done, [])
+        self.assertIsInstance(error, TimeoutError)
+
+    def test_sapi_no_driver_error_keeps_unread_text(self):
+        result, done, error = self.run_preview(FakeVoice("no_driver"))
+        self.assertIsNone(result)
+        self.assertEqual(done, [], "broken audio driver must not acknowledge spoken text")
+        self.assertIsInstance(error, PreviewPlaybackError)
+        self.assertIn("0x80045009", str(error))
+        self.assertIn("аудиодрайвер", str(error))
 
     def test_helper_com_token_released_before_uninitialize(self):
         watched = []
@@ -280,7 +309,7 @@ class PreviewTests(unittest.TestCase):
 
 
 class HotkeyCaptureTests(unittest.TestCase):
-    def make_capture(self, *, running=False, paused=False):
+    def make_capture(self, *, running=False, paused=False, return_app=False):
         appended, events, statuses = [], [], []
         clipboard = {"text": ""}
         stop_event, pause_event = threading.Event(), threading.Event()
@@ -313,6 +342,8 @@ class HotkeyCaptureTests(unittest.TestCase):
                 "clipboard_changed": True, "source_process": "synthetic.exe",
                 "copy_latency_ms": 120,
             })
+        if return_app:
+            return capture, tab, appended, events, app
         return capture, tab, appended, events
 
     def test_punctuation_only_capture_does_not_start_idle_reading(self):
@@ -356,6 +387,58 @@ class HotkeyCaptureTests(unittest.TestCase):
         capture("English only")
         self.assertEqual(appended, [])
         self.assertFalse(tab.preview_stop_event.is_set())
+
+    def test_busy_clipboard_is_retried_without_blocking_tk(self):
+        _, tab, appended, events, app = self.make_capture(return_app=True)
+        from tkinter import TclError
+        scheduled = []
+        reads = []
+        app.root.after = lambda ms, callback: scheduled.append((ms, callback))
+        app._on_tab_copy_hotkey = lambda workspace_id, info: AppHotkeysMixin._on_tab_copy_hotkey(
+            app, workspace_id, info
+        )
+        app.tab_hotkey_monitors["capture-tab"]._clipboard_sequence_number = lambda: 44
+
+        def clipboard_get():
+            reads.append(True)
+            if len(reads) <= 2:
+                raise TclError("clipboard cannot be opened, another application grabbed it")
+            return "Первый текст."
+
+        app.root.clipboard_get = clipboard_get
+        app._on_tab_copy_hotkey("capture-tab", {
+            "clipboard_changed": True, "clipboard_sequence_after": 44,
+        })
+        self.assertEqual(len(scheduled), 1)
+        while scheduled:
+            ms, callback = scheduled.pop(0)
+            self.assertEqual(ms, 60)
+            callback()
+        self.assertEqual(len(reads), 3)
+        self.assertEqual(appended, ["Первый текст."])
+        self.assertFalse(any(kind == "global_copy_clipboard_read_failed" for kind, _ in events))
+
+    def test_clipboard_retry_does_not_consume_newer_copy(self):
+        _, tab, appended, events, app = self.make_capture(return_app=True)
+        from tkinter import TclError
+        scheduled = []
+        sequence = [10]
+        app.root.clipboard_get = lambda: (_ for _ in ()).throw(
+            TclError("clipboard cannot be opened, another application grabbed it")
+        )
+        app.root.after = lambda ms, callback: scheduled.append(callback)
+        app._on_tab_copy_hotkey = lambda workspace_id, info: AppHotkeysMixin._on_tab_copy_hotkey(
+            app, workspace_id, info
+        )
+        app.tab_hotkey_monitors["capture-tab"]._clipboard_sequence_number = lambda: sequence[0]
+        app._on_tab_copy_hotkey("capture-tab", {
+            "clipboard_changed": True, "clipboard_sequence_after": 10,
+        })
+        self.assertEqual(len(scheduled), 1)
+        sequence[0] = 11
+        scheduled.pop(0)()
+        self.assertEqual(appended, [])
+        self.assertTrue(any(kind == "global_copy_clipboard_retry_superseded" for kind, _ in events))
 
 
 if __name__ == "__main__":

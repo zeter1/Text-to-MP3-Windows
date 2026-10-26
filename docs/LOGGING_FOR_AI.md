@@ -75,7 +75,11 @@ Tk автоматически отключает визуальный перен
 
 Ошибка без положительного подтверждения имеет код `SAPI_PLAYBACK_UNVERIFIED`; `likely_cause` не устанавливает аппаратную причину. По run ID сначала сравнить `stream_submitted` → `stream_completion_claimed` → `failed`, затем `cleanup_started/completed/failed` и `com_released`. HRESULT/позиции устройства подтверждают доступный программный boundary; слышимость, качество звука и состояние Bluetooth требуют отдельного runtime evidence.
 
-Cleanup делает Resume при паузе, purge и WaitUntilDone с пределом 1000 мс; вторичная ошибка не заменяет первичную. COM wrappers и неисполняющиеся traceback frames освобождаются до CoUninitialize. В UI queue передаётся исключение без живого traceback/cause/context и заранее сохранённый текст traceback.
+Cleanup делает Resume при паузе; если был Stop, незавершённый блок или ошибка, применяется purge + WaitUntilDone (1000 мс) с событием `cleanup_completed` либо `cleanup_failed`. Если все блоки уже подтверждены, повторный purge не нужен: событие `cleanup_idle_released` показывает обычное освобождение готового SAPI-голоса. Это важно при Bluetooth: ложный `WaitUntilDone=False` после уже успешного чтения не должен создавать `OPERATION_TIMEOUT`. Вторичная ошибка не заменяет первичную. COM wrappers и неисполняющиеся traceback frames освобождаются до CoUninitialize. В UI queue передаётся исключение без живого traceback/cause/context и заранее сохранённый текст traceback.
+
+`LastHResult=0x80045009` — SAPI `SPERR_NO_DRIVER`: проблема драйвера/endpoint в Windows; приложение сохраняет неподтверждённый текст и сообщает код, но не может починить драйвер или автоматически выбрать другой вывод вместо сохранённого. Для других аудио-кодов 0x80045006–0x80045008 предусмотрена аналогичная подсказка.
+
+При `global_copy_clipboard_read_failed` сначала проверить `error`: сообщение `clipboard cannot be opened` означает временную блокировку другими приложениями. Программа делает до четырёх повторов через Tk.after(60 мс); поле `clipboard_read_retries` в успешном `global_copy_text_captured` или окончательной ошибке показывает число попыток. `global_copy_clipboard_retry_superseded` означает, что последовательность clipboard изменилась и старая попытка намеренно не прочитала более новый фрагмент. `global_copy_clipboard_timeout` означает отсутствие обновления clipboard за окно ожидания, а не ошибку открывания.
 
 ## Размер и шум
 

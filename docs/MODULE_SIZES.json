@@ -12,14 +12,14 @@
       "lines": 578
     },
     {
+      "path": "tts_app/sapi_preview.py",
+      "bytes": 21580,
+      "lines": 619
+    },
+    {
       "path": "tts_app/app_event_dispatch.py",
       "bytes": 21264,
       "lines": 482
-    },
-    {
-      "path": "tts_app/sapi_preview.py",
-      "bytes": 20975,
-      "lines": 608
     },
     {
       "path": "tts_app/task_ui_build.py",
@@ -32,6 +32,11 @@
       "lines": 480
     },
     {
+      "path": "tts_app/app_hotkeys.py",
+      "bytes": 16542,
+      "lines": 489
+    },
+    {
       "path": "tts_app/runtime_storage.py",
       "bytes": 16112,
       "lines": 338
@@ -40,11 +45,6 @@
       "path": "tts_app/task_capture.py",
       "bytes": 15704,
       "lines": 394
-    },
-    {
-      "path": "tts_app/app_hotkeys.py",
-      "bytes": 15183,
-      "lines": 463
     },
     {
       "path": "tts_app/task_preview_player.py",
@@ -172,6 +172,11 @@
       "lines": 132
     },
     {
+      "path": "tts_app/sapi_preview_diagnostics.py",
+      "bytes": 5959,
+      "lines": 130
+    },
+    {
       "path": "tts_app/app_workspace_save.py",
       "bytes": 5701,
       "lines": 166
@@ -185,11 +190,6 @@
       "path": "tts_app/widgets.py",
       "bytes": 5481,
       "lines": 148
-    },
-    {
-      "path": "tts_app/sapi_preview_diagnostics.py",
-      "bytes": 5035,
-      "lines": 117
     },
     {
       "path": "tts_app/runtime_recovery.py",

@@ -83,6 +83,19 @@ def preview_sapi_snapshot(voice) -> dict:
 def verify_preview_stream(stream_id: int, before: dict, after: dict) -> None:
     hresult = int(after.get("LastHResult", 0)) & 0xFFFFFFFF
     if hresult & 0x80000000:
+        device_errors = {
+            0x80045006: "Аудиоустройство занято другой программой.",
+            0x80045007: "Выбранное аудиоустройство не поддерживается SAPI.",
+            0x80045008: "Выбранное аудиоустройство отключено в Windows.",
+            0x80045009: "Windows не предоставляет рабочий аудиодрайвер для выбранного устройства.",
+        }
+        advice = device_errors.get(hresult)
+        if advice:
+            raise PreviewPlaybackError(
+                f"SAPI 0x{hresult:08X}: {advice} "
+                "Переподключите устройство, проверьте звук в Windows и обновите список выходов. "
+                "Непрочитанный текст сохранён."
+            )
         raise PreviewPlaybackError(f"SAPI вернул ошибку вывода 0x{hresult:08X}. Текст сохранён.")
     before_position = before.get("CurrentDevicePosition")
     after_position = after.get("CurrentDevicePosition")

@@ -354,9 +354,33 @@ class AppHotkeysMixin:
             )
             return
 
+        retries = int(info.get("clipboard_read_retries") or 0)
+        if retries and info.get("clipboard_sequence_after") is not None:
+            # Do not consume a *new* Ctrl+C when an older clipboard read is retried.
+            current_sequence = getattr(monitor, "_clipboard_sequence_number", lambda: None)()
+            if (current_sequence is not None
+                    and int(current_sequence) != int(info["clipboard_sequence_after"])):
+                self.logger.event(
+                    "global_copy_clipboard_retry_superseded",
+                    task_id=task.task_id, tab_id=task.workspace_id,
+                    clipboard_read_retries=retries,
+                )
+                return
+
         try:
             captured = self.root.clipboard_get()
         except tk.TclError as exc:
+            if ("clipboard cannot be opened" in str(exc).lower()
+                    and retries < 4 and not self.shutdown_in_progress):
+                # Telegram/Windows may briefly own the clipboard after Ctrl+C.
+                # Retry on Tk's event loop rather than sleeping on the UI thread.
+                self.root.after(
+                    60,
+                    lambda: self._on_tab_copy_hotkey(
+                        workspace_id, {**info, "clipboard_read_retries": retries + 1}
+                    ),
+                )
+                return
             self.logger.event(
                 "global_copy_clipboard_read_failed",
                 task_id=task.task_id,
@@ -365,6 +389,7 @@ class AppHotkeysMixin:
                 source_process=source_process,
                 source_pid=source_pid,
                 copy_latency_ms=copy_latency_ms,
+                clipboard_read_retries=retries,
                 error=f"{type(exc).__name__}: {exc}",
             )
             return
@@ -446,6 +471,7 @@ class AppHotkeysMixin:
             clipboard_changed=info.get(
                 "clipboard_changed"
             ),
+            clipboard_read_retries=retries,
             preview_running=bool(
                 task.preview_thread
                 and task.preview_thread.is_alive()

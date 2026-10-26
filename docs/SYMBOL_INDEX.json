@@ -33,8 +33,8 @@
     },
     {
       "path": "tts_app/app_hotkeys.py",
-      "bytes": 15183,
-      "lines": 463
+      "bytes": 16542,
+      "lines": 489
     },
     {
       "path": "tts_app/app_recovery.py",
@@ -158,13 +158,13 @@
     },
     {
       "path": "tts_app/sapi_preview.py",
-      "bytes": 20975,
-      "lines": 608
+      "bytes": 21580,
+      "lines": 619
     },
     {
       "path": "tts_app/sapi_preview_diagnostics.py",
-      "bytes": 5035,
-      "lines": 117
+      "bytes": 5959,
+      "lines": 130
     },
     {
       "path": "tts_app/task_capture.py",
@@ -458,7 +458,7 @@
       "kind": "class",
       "path": "tts_app/app_hotkeys.py",
       "line": 11,
-      "end_line": 462
+      "end_line": 488
     },
     {
       "symbol": "AppHotkeysMixin._normalized_tab_hotkey",
@@ -506,7 +506,7 @@
       "kind": "method",
       "path": "tts_app/app_hotkeys.py",
       "line": 306,
-      "end_line": 462
+      "end_line": 488
     },
     {
       "symbol": "AppRecoveryMixin",
@@ -1454,7 +1454,7 @@
       "kind": "function",
       "path": "tts_app/sapi_preview.py",
       "line": 12,
-      "end_line": 607
+      "end_line": 618
     },
     {
       "symbol": "PreviewPlaybackError",
@@ -1489,14 +1489,14 @@
       "kind": "function",
       "path": "tts_app/sapi_preview_diagnostics.py",
       "line": 83,
-      "end_line": 98
+      "end_line": 111
     },
     {
       "symbol": "preview_diagnostic",
       "kind": "function",
       "path": "tts_app/sapi_preview_diagnostics.py",
-      "line": 101,
-      "end_line": 116
+      "line": 114,
+      "end_line": 129
     },
     {
       "symbol": "TaskCaptureMixin",

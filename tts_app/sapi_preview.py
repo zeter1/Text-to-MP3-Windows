@@ -584,10 +584,21 @@ def preview_sapi_text(
                 if sapi_paused:
                     voice.Resume()
                     sapi_paused = False
-                voice.Speak("", SVSFPURGE_BEFORE_SPEAK | SVS_FLAGS_ASYNC)
-                if not voice.WaitUntilDone(1000):
-                    raise TimeoutError("SAPI не подтвердил остановку за 1000 мс.")
-                diagnose("cleanup_completed", voice)
+                # After every block was positively verified, nothing remains
+                # to stop. Purging an idle Bluetooth endpoint can return False
+                # despite successful speech (observed on 2026-10-23); that
+                # teardown result must not turn a completed read into an error.
+                needs_purge = (
+                    stopped or primary_error is not None
+                    or completed_chunks < len(segments)
+                )
+                if needs_purge:
+                    voice.Speak("", SVSFPURGE_BEFORE_SPEAK | SVS_FLAGS_ASYNC)
+                    if not voice.WaitUntilDone(1000):
+                        raise TimeoutError("SAPI не подтвердил остановку за 1000 мс.")
+                    diagnose("cleanup_completed", voice)
+                else:
+                    diagnose("cleanup_idle_released", voice)
             except Exception as exc:
                 cleanup_error = exc
                 release_preview_exception_frames(exc)
