@@ -1,0 +1,2 @@
+# Keep Python source LF on Windows CI for stable byte-size checks.
+*.py text eol=lf
