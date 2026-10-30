@@ -10,6 +10,11 @@ from .ui_stall_diagnostics import ui_operation
 from .task_text_performance import has_long_line
 
 class TaskCaptureMixin:
+    def _schedule_capture_persistence(self) -> None:
+        # Coalesce bursts of global hotkey events rather than blocking Tk.
+        # The ordinary shutdown path flushes any outstanding workspace save.
+        self.app.schedule_workspace_save(delay_ms=500, keep_earliest=True)
+
     def capture_external_selection(self) -> None:
         """Capture selected text from the last active external Windows app."""
         self.app.capture_selected_text_for_tab(self)
@@ -29,6 +34,7 @@ class TaskCaptureMixin:
             )
             return False
 
+        # Python character offsets (unlike Tk count) preserve emoji alignment.
         with ui_operation(self.app, "capture_old_text_snapshot"):
             old_text = self._full_text()
         old_chars = len(old_text)
@@ -163,7 +169,7 @@ class TaskCaptureMixin:
 
         self.session_captured_chars += len(captured_text)
         self.workspace_dirty = True
-        self.app.save_workspace()
+        self._schedule_capture_persistence()
         self.schedule_queue_status_refresh()
         self.log_text_state(
             "external_selection_appended",
@@ -293,7 +299,7 @@ class TaskCaptureMixin:
                     )
 
                 self.workspace_dirty = True
-                self.app.save_workspace()
+                self._schedule_capture_persistence()
                 self.schedule_queue_status_refresh()
                 self.log_text_state(
                     "clipboard_append",

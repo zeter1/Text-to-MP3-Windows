@@ -13,6 +13,8 @@ COMMANDS = [
     [sys.executable, "tools/test_logging_compact.py"],
     [sys.executable, "tools/test_ui_diagnostics.py"],
     [sys.executable, "tools/test_preview_audio.py"],
+    [sys.executable, "tools/test_runtime_resilience.py"],
+    [sys.executable, "tools/test_reliability_followup.py"],
     [sys.executable, "tools/test_conversion_notifications.py"],
     [sys.executable, "tools/build_code_index.py"],
 ]

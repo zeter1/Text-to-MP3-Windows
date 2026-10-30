@@ -42,6 +42,12 @@ class AppAudioSettingsMixin:
         ).start()
 
     def _load_audio_outputs_async(self) -> None:
+        # Only one SAPI enumeration worker at a time. Bluetooth reconnection
+        # checks must not create overlapping COM calls.
+        if getattr(self, "_audio_output_scan_running", False):
+            return
+        self._audio_output_scan_running = True
+
         def worker() -> None:
             try:
                 outputs, current = get_sapi_audio_outputs()
@@ -76,6 +82,46 @@ class AppAudioSettingsMixin:
     def refresh_audio_outputs(self) -> None:
         self.logger.event("audio_outputs_refresh_requested")
         self._load_audio_outputs_async()
+
+    def _cancel_audio_output_recheck(self) -> None:
+        pending = getattr(self, "_audio_recheck_after_id", None)
+        self._audio_recheck_after_id = None
+        if pending is not None:
+            try:
+                self.root.after_cancel(pending)
+            except tk.TclError:
+                pass
+
+    def _schedule_audio_output_recheck(self) -> None:
+        # Poll ONLY while the saved concrete device is missing. Keep the user's
+        # chosen output and never fall back to an arbitrary/default endpoint.
+        if (self.shutdown_in_progress
+                or getattr(self, "_audio_recheck_after_id", None) is not None):
+            return
+        self._audio_recheck_after_id = self.root.after(
+            12000, self._recheck_missing_audio_output,
+        )
+
+    def _retry_audio_output_discovery(self) -> None:
+        self._audio_discovery_retry_after_id = None
+        if not self.shutdown_in_progress:
+            self._load_audio_outputs_async()
+
+    def _recheck_missing_audio_output(self) -> None:
+        self._audio_recheck_after_id = None
+        if self.shutdown_in_progress:
+            return
+        selected = (
+            self.global_audio_output_var.get().strip()
+            or DEFAULT_AUDIO_OUTPUT_LABEL
+        )
+        if selected == DEFAULT_AUDIO_OUTPUT_LABEL:
+            return
+        resolved, _ = resolve_audio_output_description(
+            selected, self.audio_outputs,
+        )
+        if resolved is None:
+            self._load_audio_outputs_async()
 
     def stop_other_previews(self, active: TaskTab) -> None:
         for task in list(self.tabs.values()):
@@ -235,6 +281,19 @@ class AppAudioSettingsMixin:
             or DEFAULT_AUDIO_OUTPUT_LABEL
         )
         self.settings["audio_output"] = selected
+        # Cancel obsolete probes when the user deliberately changes output.
+        if selected == DEFAULT_AUDIO_OUTPUT_LABEL:
+            self._audio_output_missing = False
+            self._cancel_audio_output_recheck()
+        else:
+            resolved, _ = resolve_audio_output_description(
+                selected, self.audio_outputs,
+            )
+            self._audio_output_missing = resolved is None
+            if self._audio_output_missing:
+                self._schedule_audio_output_recheck()
+            else:
+                self._cancel_audio_output_recheck()
         self.logger.event(
             "audio_output_selected",
             audio_output=selected,

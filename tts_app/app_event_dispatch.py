@@ -11,9 +11,17 @@ from .conversion_notifications import ConversionNotifications
 
 class AppEventDispatchMixin:
     def _process_events(self) -> None:
+        # Limit each Tk callback by count and duration to prevent starvation.
+        processed = 0
+        batch_started = time.perf_counter()
         try:
             while True:
+                if processed >= 80 or (
+                    processed >= 8 and time.perf_counter() - batch_started >= 0.010
+                ):
+                    break
                 task_id, kind, payload = self.events.get_nowait()
+                processed += 1
 
                 if kind == "voices_loaded":
                     self.voices = list(payload)  # type: ignore[arg-type]
@@ -59,6 +67,14 @@ class AppEventDispatchMixin:
                     continue
 
                 if kind == "audio_outputs_loaded":
+                    self._audio_output_scan_running = False
+                    retry = getattr(self, "_audio_discovery_retry_after_id", None)
+                    self._audio_discovery_retry_after_id = None
+                    if retry is not None:
+                        try:
+                            self.root.after_cancel(retry)
+                        except tk.TclError:
+                            pass
                     info = payload  # type: ignore[assignment]
                     outputs = list(info.get("outputs") or [])
                     current = str(info.get("current") or "")
@@ -103,6 +119,29 @@ class AppEventDispatchMixin:
 
                     self.audio_output_choices = choices
 
+                    was_missing = getattr(self, "_audio_output_missing", False)
+                    is_missing = (
+                        selected != DEFAULT_AUDIO_OUTPUT_LABEL
+                        and resolved is None
+                    )
+                    self._audio_output_missing = is_missing
+                    if is_missing:
+                        self._schedule_audio_output_recheck()
+                        if not was_missing:
+                            self.logger.event(
+                                "audio_output_unavailable",
+                                selected_output=selected,
+                                available_count=len(outputs),
+                            )
+                    else:
+                        self._cancel_audio_output_recheck()
+                        if was_missing:
+                            self.logger.event(
+                                "audio_output_reconnected",
+                                selected_output=selected,
+                                match_mode=match_mode,
+                            )
+
                     for tab in list(self.tabs.values()):
                         tab.audio_output_combo["values"] = (
                             self.audio_output_choices
@@ -127,6 +166,7 @@ class AppEventDispatchMixin:
                     continue
 
                 if kind == "audio_outputs_error":
+                    self._audio_output_scan_running = False
                     info = payload  # type: ignore[assignment]
                     exc = info["exc"]
                     self.logger.error(
@@ -136,6 +176,18 @@ class AppEventDispatchMixin:
                         traceback_text=info["traceback"],
                         context={},
                     )
+                    # If discovery failed while a saved Bluetooth device is
+                    # missing, retry later without blocking the Tk event loop.
+                    chosen = (self.global_audio_output_var.get().strip()
+                              or DEFAULT_AUDIO_OUTPUT_LABEL)
+                    if chosen != DEFAULT_AUDIO_OUTPUT_LABEL:
+                        self._audio_output_missing = True
+                        self._schedule_audio_output_recheck()
+                    elif (not self.shutdown_in_progress
+                          and getattr(self, "_audio_discovery_retry_after_id", None) is None):
+                        self._audio_discovery_retry_after_id = self.root.after(
+                            12000, self._retry_audio_output_discovery,
+                        )
                     continue
 
                 task = self.tabs.get(task_id)
@@ -439,6 +491,12 @@ class AppEventDispatchMixin:
                         context=preview_context,
                     )
 
+                    # A disconnected endpoint may return between attempts.
+                    # Refresh the real device list but never auto-switch output
+                    # or replay an unverified block.
+                    if "сейчас не найдено в Windows SAPI" in str(exc):
+                        self._load_audio_outputs_async()
+
                     task.current_preview_finish_reason = "error"
                     self.logger.event(
                         "preview_finished",
@@ -478,4 +536,5 @@ class AppEventDispatchMixin:
         except queue.Empty:
             pass
 
-        self.root.after(100, self._process_events)
+        # A remaining backlog gets another short slice of the UI loop.
+        self.root.after(1 if not self.events.empty() else 100, self._process_events)

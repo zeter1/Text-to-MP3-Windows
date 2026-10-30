@@ -78,6 +78,7 @@ class WindowsHotkeyCaptureMixin:
             return {
                 "source_process": "",
                 "source_pid": None,
+                "source_hwnd": 0,
                 "clipboard_sequence_before": None,
                 "trigger_perf": time.perf_counter(),
             }
@@ -95,6 +96,7 @@ class WindowsHotkeyCaptureMixin:
             return {
                 "source_process": "",
                 "source_pid": pid_value or None,
+                "source_hwnd": hwnd,
                 "clipboard_sequence_before": (
                     self._clipboard_sequence_number()
                 ),
@@ -104,6 +106,7 @@ class WindowsHotkeyCaptureMixin:
             return {
                 "source_process": "",
                 "source_pid": None,
+                "source_hwnd": 0,
                 "clipboard_sequence_before": (
                     self._clipboard_sequence_number()
                 ),
@@ -147,6 +150,10 @@ class WindowsHotkeyCaptureMixin:
             return
 
         context = dict(trigger_context or {})
+        # Invalidate deferred reads from older hotkeys. A later Ctrl+C must
+        # never be consumed by the previous capture's retry/grace timer.
+        self._capture_generation = getattr(self, "_capture_generation", 0) + 1
+        context["capture_generation"] = self._capture_generation
         if (
             not context.get("source_process")
             and context.get("source_pid")

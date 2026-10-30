@@ -195,6 +195,8 @@ class Tests(unittest.TestCase):
             monitor = UiStallMonitor(root, logger, threshold_sec=0.12)
             monitor.start()
             try:
+                with monitor.operation("recent_completed_ui_operation", text_chars=80):
+                    pass
                 with monitor.operation("synthetic_long_op", text_chars=100,
                                        forbidden_raw_text="THIS_MUST_NOT_BE_LOGGED"):
                     # In real life the UI main thread is stuck in Tk/native code;
@@ -210,6 +212,10 @@ class Tests(unittest.TestCase):
                 doc = json.loads(snap_path.read_text(encoding="utf-8"))
                 self.assertEqual(doc["error_code"], "UI_MAIN_THREAD_STALL")
                 self.assertEqual(doc["operation"], "synthetic_long_op")
+                self.assertEqual(
+                    doc["last_completed_ui_operation"]["name"],
+                    "recent_completed_ui_operation",
+                )
                 self.assertTrue(any(item["role"] == "tk_main" for item in doc["threads"]))
                 self.assertNotIn("THIS_MUST_NOT_BE_LOGGED", snap_path.read_text(encoding="utf-8"))
                 self.assertFalse(any("filename" in frame for item in doc["threads"] for frame in item["frames"]))

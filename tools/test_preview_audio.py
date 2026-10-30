@@ -440,6 +440,58 @@ class HotkeyCaptureTests(unittest.TestCase):
         self.assertEqual(appended, [])
         self.assertTrue(any(kind == "global_copy_clipboard_retry_superseded" for kind, _ in events))
 
+    def test_late_clipboard_update_is_captured_after_async_grace(self):
+        _, tab, appended, events, app = self.make_capture(return_app=True)
+        callbacks = []
+        sequence = [100]
+        app.root.after = lambda ms, callback: callbacks.append((ms, callback))
+        app.root.clipboard_get = lambda: "Новый русский текст."
+        monitor = app.tab_hotkey_monitors["capture-tab"]
+        monitor._clipboard_sequence_number = lambda: sequence[0]
+        monitor._capture_generation = 1
+        app._on_tab_copy_hotkey = lambda workspace_id, info: AppHotkeysMixin._on_tab_copy_hotkey(
+            app, workspace_id, info
+        )
+        app._on_tab_copy_hotkey("capture-tab", {
+            "clipboard_changed": False, "clipboard_sequence_before": 100,
+            "capture_generation": 1,
+        })
+        self.assertEqual(len(callbacks), 1)
+        self.assertEqual(callbacks[0][0], 125)
+        self.assertEqual(appended, [])
+        sequence[0] = 101
+        callbacks.pop(0)[1]()
+        self.assertEqual(appended, ["Новый русский текст."])
+        self.assertFalse(any(name == "global_copy_clipboard_timeout" for name, _ in events))
+
+    def test_clipboard_grace_never_reads_unchanged_stale_data(self):
+        _, tab, appended, events, app = self.make_capture(return_app=True)
+        callbacks = []
+        app.root.after = lambda ms, callback: callbacks.append(callback)
+        app.root.clipboard_get = lambda: self.fail("Must not read unchanged clipboard")
+        app.tab_hotkey_monitors["capture-tab"]._clipboard_sequence_number = lambda: 9
+        app._on_tab_copy_hotkey = lambda workspace_id, info: AppHotkeysMixin._on_tab_copy_hotkey(
+            app, workspace_id, info
+        )
+        app._on_tab_copy_hotkey("capture-tab", {
+            "clipboard_changed": False, "clipboard_sequence_before": 9,
+        })
+        for _ in range(2):
+            self.assertEqual(len(callbacks), 1)
+            callbacks.pop(0)()
+        self.assertEqual(appended, [])
+        self.assertEqual(sum(name == "global_copy_clipboard_timeout" for name, _ in events), 1)
+
+    def test_older_capture_cannot_steal_next_hotkey_text(self):
+        _, tab, appended, events, app = self.make_capture(return_app=True)
+        app.tab_hotkey_monitors["capture-tab"]._capture_generation = 2
+        app.root.clipboard_get = lambda: self.fail("Stale generation must not read clipboard")
+        AppHotkeysMixin._on_tab_copy_hotkey(app, "capture-tab", {
+            "clipboard_changed": True, "capture_generation": 1,
+        })
+        self.assertEqual(appended, [])
+        self.assertTrue(any(name == "global_copy_capture_superseded" for name, _ in events))
+
 
 if __name__ == "__main__":
     try:

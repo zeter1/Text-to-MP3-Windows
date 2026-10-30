@@ -147,6 +147,9 @@ class AppWorkspaceInitMixin:
         self._load_voices_async()
         self._load_audio_outputs_async()
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        # Outside a named operation, the event loop is idle; an unrelated
+        # late Tk freeze must not be misreported as app startup.
+        self.ui_watchdog.stage = "idle_tk_mainloop"
 
     def _build_ui(self) -> None:
         outer = ttk.Frame(self.root, padding=8)

@@ -7,6 +7,11 @@
       "lines": 1412
     },
     {
+      "path": "tts_app/app_event_dispatch.py",
+      "bytes": 24417,
+      "lines": 541
+    },
+    {
       "path": "tts_app/problem_logger_events.py",
       "bytes": 22305,
       "lines": 578
@@ -17,9 +22,9 @@
       "lines": 619
     },
     {
-      "path": "tts_app/app_event_dispatch.py",
-      "bytes": 21264,
-      "lines": 482
+      "path": "tts_app/app_hotkeys.py",
+      "bytes": 19631,
+      "lines": 546
     },
     {
       "path": "tts_app/task_ui_build.py",
@@ -32,19 +37,14 @@
       "lines": 480
     },
     {
-      "path": "tts_app/app_hotkeys.py",
-      "bytes": 16542,
-      "lines": 489
-    },
-    {
       "path": "tts_app/runtime_storage.py",
       "bytes": 16112,
       "lines": 338
     },
     {
       "path": "tts_app/task_capture.py",
-      "bytes": 15704,
-      "lines": 394
+      "bytes": 16086,
+      "lines": 400
     },
     {
       "path": "tts_app/task_preview_player.py",
@@ -73,18 +73,23 @@
     },
     {
       "path": "tts_app/app_workspace_init.py",
-      "bytes": 12675,
-      "lines": 354
+      "bytes": 12866,
+      "lines": 357
+    },
+    {
+      "path": "tts_app/app_audio_settings.py",
+      "bytes": 11952,
+      "lines": 388
+    },
+    {
+      "path": "tts_app/ui_stall_diagnostics.py",
+      "bytes": 11899,
+      "lines": 291
     },
     {
       "path": "tts_app/task_preview_controls.py",
       "bytes": 11500,
       "lines": 294
-    },
-    {
-      "path": "tts_app/ui_stall_diagnostics.py",
-      "bytes": 10941,
-      "lines": 270
     },
     {
       "path": "tts_app/app_recovery.py",
@@ -97,19 +102,14 @@
       "lines": 330
     },
     {
+      "path": "tts_app/windows_hotkey_capture.py",
+      "bytes": 10146,
+      "lines": 298
+    },
+    {
       "path": "tts_app/runtime_core.py",
       "bytes": 10109,
       "lines": 336
-    },
-    {
-      "path": "tts_app/windows_hotkey_capture.py",
-      "bytes": 9748,
-      "lines": 291
-    },
-    {
-      "path": "tts_app/app_audio_settings.py",
-      "bytes": 9597,
-      "lines": 329
     },
     {
       "path": "tts_app/problem_logger_summary.py",

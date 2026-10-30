@@ -60,6 +60,7 @@ class UiStallMonitor:
         self.last_pulse = time.monotonic()
         self.stage = "app_startup"
         self.stage_context: dict = {}
+        self.last_completed_operation: dict | None = None
         self._stop = threading.Event()
         self._stall: dict | None = None
         self._reported_pulse = False
@@ -108,6 +109,7 @@ class UiStallMonitor:
             detected = time.monotonic()
             stage = self.stage
             filename = f"hang_{datetime.now():%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:6]}.json"
+            last_completed = self.last_completed_operation
             snapshot = {
                 "schema": 1, "error_code": "UI_MAIN_THREAD_STALL",
                 "detected_at": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -116,6 +118,19 @@ class UiStallMonitor:
                 "delay_ms_at_capture": round((detected - pulse) * 1000),
                 "operation": stage,
                 "operation_context": dict(self.stage_context),
+                # Previous activity is context, never proof of causality.
+                "last_completed_ui_operation": (
+                    {
+                        "name": last_completed["name"],
+                        "duration_ms": last_completed["duration_ms"],
+                        "age_ms": round(
+                            (detected - last_completed["completed_perf"]) * 1000
+                        ),
+                    }
+                    if last_completed is not None
+                    and detected - last_completed["completed_perf"] <= 30
+                    else None
+                ),
                 "evidence_limitations": (
                     "Stack frames identify Python calls but not CPU use in native Tk/SAPI; "
                     "a blocked GIL can delay this watchdog. No source lines, locals or user text stored."
@@ -157,7 +172,13 @@ class UiStallMonitor:
         try:
             yield
         finally:
-            elapsed_ms = round((time.monotonic() - started) * 1000, 1)
+            completed_at = time.monotonic()
+            elapsed_ms = round((completed_at - started) * 1000, 1)
+            self.last_completed_operation = {
+                "name": name[:80],
+                "duration_ms": elapsed_ms,
+                "completed_perf": completed_at,
+            }
             self.stage, self.stage_context = previous_stage, previous_context
             if elapsed_ms >= 700:
                 self._slow_operation_counts[name] = self._slow_operation_counts.get(name, 0) + 1

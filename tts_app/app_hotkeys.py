@@ -330,6 +330,15 @@ class AppHotkeysMixin:
 
         hotkey = monitor.get_hotkey()
         info = dict(capture_info or {})
+        generation = info.get("capture_generation")
+        if (generation is not None
+                and generation != getattr(monitor, "_capture_generation", generation)):
+            self.logger.event(
+                "global_copy_capture_superseded",
+                task_id=task.task_id,
+                tab_id=task.workspace_id,
+            )
+            return
         source_process = str(
             info.get("source_process") or ""
         )
@@ -339,20 +348,68 @@ class AppHotkeysMixin:
         )
 
         if info.get("clipboard_changed") is False:
-            self.logger.event(
-                "global_copy_clipboard_timeout",
-                task_id=task.task_id,
-                tab_id=task.workspace_id,
-                hotkey=hotkey,
-                source_process=source_process,
-                source_pid=source_pid,
-                copy_latency_ms=copy_latency_ms,
-                timeout_sec=CLIPBOARD_COPY_TIMEOUT_SEC,
-            )
-            task.status_var.set(
-                "Не удалось дождаться нового текста в буфере обмена."
-            )
-            return
+            # Some applications update the clipboard a fraction of a second
+            # AFTER the normal timeout. Give them a bounded async grace period,
+            # but only accept a genuinely newer sequence (never stale text).
+            before = info.get("clipboard_sequence_before")
+            sequence = getattr(monitor, "_clipboard_sequence_number", lambda: None)()
+            if (before is not None and sequence is not None
+                    and int(sequence) != int(before)):
+                info["clipboard_changed"] = True
+                info["clipboard_sequence_after"] = sequence
+                info["clipboard_grace_recovered"] = True
+            else:
+                checks = int(info.get("clipboard_grace_checks") or 0)
+                if checks < 2 and not self.shutdown_in_progress:
+                    self.root.after(
+                        125,
+                        lambda: self._on_tab_copy_hotkey(
+                            workspace_id, {**info, "clipboard_grace_checks": checks + 1}
+                        ),
+                    )
+                    return
+                # A custom hotkey may precede Telegram's clipboard update.
+                # Retry Ctrl+C once, only if the ORIGINAL source window stays active.
+                original_hwnd = info.get("source_hwnd")
+                if (not info.get("clipboard_recopy_attempted")
+                        and source_pid and original_hwnd
+                        and hasattr(monitor, "_foreground_capture_context")
+                        and not monitor._hotkey_is_plain_ctrl_c()):
+                    foreground = monitor._foreground_capture_context()
+                    if (foreground.get("source_pid") == source_pid
+                            and foreground.get("source_hwnd") == original_hwnd):
+                        monitor._send_ctrl_c_to_active_window()
+                        self.logger.event(
+                            "global_copy_recapture_requested",
+                            task_id=task.task_id,
+                            tab_id=task.workspace_id,
+                            hotkey=hotkey,
+                            source_process=source_process,
+                        )
+                        self.root.after(
+                            125,
+                            lambda: self._on_tab_copy_hotkey(
+                                workspace_id,
+                                {**info, "clipboard_recopy_attempted": True,
+                                 "clipboard_grace_checks": 0},
+                            ),
+                        )
+                        return
+                self.logger.event(
+                    "global_copy_clipboard_timeout",
+                    task_id=task.task_id,
+                    tab_id=task.workspace_id,
+                    hotkey=hotkey,
+                    source_process=source_process,
+                    source_pid=source_pid,
+                    copy_latency_ms=copy_latency_ms,
+                    timeout_sec=CLIPBOARD_COPY_TIMEOUT_SEC,
+                    clipboard_grace_checks=checks,
+                )
+                task.status_var.set(
+                    "Не удалось дождаться нового текста в буфере обмена."
+                )
+                return
 
         retries = int(info.get("clipboard_read_retries") or 0)
         if retries and info.get("clipboard_sequence_after") is not None:
