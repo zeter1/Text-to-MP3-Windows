@@ -1,6 +1,10 @@
-# Сборка Text-to-MP3-Windows в готовый EXE
+# Сборка ZeTer-Voice в готовый EXE
 
 `build_exe.bat` собирает полностью готовую Windows-версию программы. После успешной сборки пользователю не требуется отдельно устанавливать Python, `pywin32` или FFmpeg.
+
+ZeTer Voice включает отдельную папку `engine_runtime` с Python 3.13 и pip для дополнительных движков, без пользовательских site-packages сборщика. Модель Silero и библиотеки нейросинтеза устанавливаются отдельно из вкладки «Голосовые движки». Весь комплект `runtime`, `engine_runtime`, `tts_app`, `tools` и EXE переносится вместе.
+
+Проверки на отдельной тестовой копии: `ZeTer-Voice.exe --self-test-gui` открывает искусственный UI и закрывает его; `--self-test-voices` проверяет настоящие Silero/Edge, MP3 и SAPI playback при установленных в тестовой копии движках. Эти режимы не предназначены для запуска поверх пользовательского рабочего пространства.
 
 ## Как собрать
 
@@ -15,10 +19,10 @@
 4. Готовая программа находится здесь:
 
 ```text
-dist\Text-to-MP3-Windows\Text-to-MP3-Windows.exe
+dist\ZeTer-Voice\ZeTer-Voice.exe
 ```
 
-Переносите **всю папку** `dist\Text-to-MP3-Windows`, а не один EXE: рядом с ним находится папка `runtime` с Python runtime, pywin32/COM-компонентами и встроенным FFmpeg.
+Переносите **всю папку** `dist\ZeTer-Voice`, а не один EXE: рядом с ним находится папка `runtime` с Python runtime, pywin32/COM-компонентами и встроенным FFmpeg.
 
 ## Что BAT делает автоматически
 
@@ -54,7 +58,7 @@ dist\Text-to-MP3-Windows\Text-to-MP3-Windows.exe
 Пользователь всё равно запускает один файл:
 
 ```text
-Text-to-MP3-Windows.exe
+ZeTer-Voice.exe
 ```
 
 ## FFmpeg уже включён
@@ -74,7 +78,7 @@ SAPI является компонентом Windows. Набор конкрет�
 Для сборки используется PyInstaller runtime hook `build_support/package_runtime.py`. В обычном запуске он ничего не меняет. При запуске:
 
 ```text
-Text-to-MP3-Windows.exe --self-test
+ZeTer-Voice.exe --self-test
 ```
 
 он до открытия GUI проверяет:
@@ -118,11 +122,11 @@ BAT не скрывает ошибку и не сообщает об успех�
 ```text
 build/
 .build-venv/
-Text-to-MP3-Windows.spec
+ZeTer-Voice.spec
 ```
 
 Для запуска оставьте целиком:
 
 ```text
-dist\Text-to-MP3-Windows\
+dist\ZeTer-Voice\
 ```

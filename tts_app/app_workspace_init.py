@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .engine_manager_ui import EngineManager
+
 from .runtime import *
 from .problem_logger import ProblemLogger
 from .text_processing import *
@@ -182,7 +184,13 @@ class AppWorkspaceInitMixin:
         if os.name != "nt":
             self.autostart_checkbutton.configure(state="disabled")
 
-        self.notebook = ClosableNotebook(outer)
+        pages = ttk.Notebook(outer)
+        pages.pack(fill="both", expand=True)
+        reading = ttk.Frame(pages)
+        pages.add(reading, text="Озвучивание")
+        self.engine_manager = EngineManager(self, pages)
+        pages.add(self.engine_manager.frame, text="Голосовые движки")
+        self.notebook = ClosableNotebook(reading)
         self.notebook.pack(fill="both", expand=True)
 
         self.notebook.bind(

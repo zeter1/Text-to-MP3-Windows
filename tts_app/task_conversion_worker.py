@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from .voice_catalog import voice_spec
+from .voice_process import VoiceSession
+
 from .runtime import *
 from .problem_logger import ProblemLogger
 from .text_processing import *
@@ -76,6 +79,8 @@ class TaskConversionWorkerMixin:
         output_free_before: int | None = None
         output_free_after: int | None = None
         preserve_recovery_on_exit = False
+        engine_session = None
+        max_attempts = 1 if voice_spec(voice) else MAX_RETRIES
 
         text_hash_full = hashlib.sha256(
             text.encode("utf-8")
@@ -119,6 +124,9 @@ class TaskConversionWorkerMixin:
 
         # CODEX-REGION: split-output-recovery
         try:
+            if voice_spec(voice):
+                engine_session = VoiceSession(voice, self.cancel_event)
+                engine_session.__enter__()
             stage = "split_text"
             self.current_job_stage = stage
             chunks = split_text(text)
@@ -327,7 +335,7 @@ class TaskConversionWorkerMixin:
                 last_error = ""
                 retry_before_chunk = retry_count
 
-                for attempt in range(1, MAX_RETRIES + 1):
+                for attempt in range(1, max_attempts + 1):
                     if self.cancel_event.is_set():
                         raise InterruptedError(
                             "Операция остановлена пользователем."
@@ -336,21 +344,24 @@ class TaskConversionWorkerMixin:
                     try:
                         wav_path.unlink(missing_ok=True)
 
-                        synthesize_wav_once(
-                            text=chunk,
-                            wav_path=wav_path,
-                            voice_description=voice,
-                            rate=rate,
-                            pitch=pitch,
-                            volume=volume,
-                        )
+                        if engine_session is not None:
+                            engine_session.synthesize(chunk, wav_path, rate, pitch, volume)
+                        else:
+                            synthesize_wav_once(
+                                text=chunk,
+                                wav_path=wav_path,
+                                voice_description=voice,
+                                rate=rate,
+                                pitch=pitch,
+                                volume=volume,
+                            )
 
                         if (
                             not wav_path.exists()
                             or wav_path.stat().st_size < 128
                         ):
                             raise RuntimeError(
-                                "SAPI не создал корректный WAV-файл."
+                                "Движок не создал корректный WAV-файл."
                             )
 
                         generated_wav_info = get_wav_info(
@@ -364,12 +375,14 @@ class TaskConversionWorkerMixin:
                             )
                         ):
                             raise RuntimeError(
-                                "SAPI создал неполный или повреждённый WAV-файл."
+                                "Движок создал неполный или повреждённый WAV-файл."
                             )
 
                         success = True
                         break
 
+                    except InterruptedError:
+                        raise
                     except Exception as exc:
                         last_error = f"{type(exc).__name__}: {exc}"
                         retry_count += 1
@@ -386,7 +399,7 @@ class TaskConversionWorkerMixin:
                             error=last_error[:800],
                         )
 
-                        if attempt < MAX_RETRIES:
+                        if attempt < max_attempts:
                             time.sleep(0.8 * attempt)
 
                 elapsed = time.perf_counter() - chunk_started
@@ -394,7 +407,7 @@ class TaskConversionWorkerMixin:
                 if not success:
                     raise RuntimeError(
                         f"Не удалось озвучить фрагмент {index} из {len(chunks)} "
-                        f"после {MAX_RETRIES} попыток. {last_error}"
+                        f"после {max_attempts} попыток. {last_error}"
                     )
 
                 chunk_durations.append(elapsed)
@@ -1325,7 +1338,7 @@ class TaskConversionWorkerMixin:
                 context=context,
                 failed_chunk=(
                     current_chunk
-                    if stage.startswith("sapi_chunk_")
+                    if stage.startswith("sapi_chunk_") and not voice_spec(voice)
                     else None
                 ),
             )
@@ -1408,4 +1421,6 @@ class TaskConversionWorkerMixin:
             ):
                 shutil.rmtree(work_dir, ignore_errors=True)
             self.current_job_stage = "idle"
+            if engine_session is not None:
+                engine_session.__exit__(None, None, None)
             pythoncom.CoUninitialize()

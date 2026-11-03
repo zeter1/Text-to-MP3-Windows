@@ -1,8 +1,8 @@
 **Язык / Language:** [Русский](README.md) · **English**
 
-# Text to MP3 for Windows
+# ZeTer Voice
 
-**Text to MP3 for Windows** is a Python desktop application for reading text with Microsoft SAPI system voices and saving text as MP3. It supports multiple tabs, global hotkeys, recovery of interrupted jobs, and long texts.
+**ZeTer Voice** is a Python desktop application for reading text with Microsoft SAPI system voices and saving text as MP3. It supports multiple tabs, global hotkeys, recovery of interrupted jobs, and long texts.
 
 The project is designed for everyday use: text can be listened to directly in the application, selected text can be captured from other programs, and audio versions of articles, notes, and documents can be created.
 
@@ -10,9 +10,9 @@ The project is designed for everyday use: text can be listened to directly in th
 
 > Windows builds are marked **Prerelease**: they are preliminary builds for testing. A release build may differ from the current source.
 
-1. Open [GitHub Releases](https://github.com/zeter1/Text-to-MP3-Windows/releases) and expand **Assets** for the build you choose.
-2. Download `Text-to-MP3-Windows-x64.zip` and extract the entire archive.
-3. Run `Text-to-MP3-Windows.exe`, enter text, and select a voice.
+1. Open [GitHub Releases](https://github.com/zeter1/ZeTer-Voice/releases) and expand **Assets** for the build you choose.
+2. Download `ZeTer-Voice-x64.zip` (older releases use `Text-to-MP3-Windows-x64.zip`) and extract the entire archive.
+3. Run `ZeTer-Voice.exe` (older releases use `Text-to-MP3-Windows.exe`), enter text, and select a voice.
 
 Python, `pywin32`, and FFmpeg are included. Keep the `runtime` folder beside the EXE. Windows needs at least one installed **Microsoft SAPI voice**. A SHA-256 file is published beside the ZIP.
 
@@ -25,6 +25,10 @@ Python, `pywin32`, and FFmpeg are included. Keep the `runtime` folder beside the
 - speech synthesis integrated with FFmpeg;
 - local user-state persistence separated from repository source files;
 - lightweight CI verification for a Windows-specific project without pretending to emulate SAPI or real audio devices.
+
+## Optional Russian voice engines
+
+The **Voice engines / Голосовые движки** top tab installs or removes Silero (five offline voices) and Microsoft Edge (Svetlana and Dmitry, online). Existing components are preserved. Removal requires confirmation and keeps a recovery copy. System SAPI voices and user data are not removed. Portable builds include a private Python for engines; model/library downloads happen only when explicitly installing. Edge sends text to Microsoft.
 
 ## Features
 
@@ -44,13 +48,13 @@ Python, `pywin32`, and FFmpeg are included. Keep the `runtime` folder beside the
 
 ## Installation from source
 
-1. Install Python 3.11 or newer for Windows.
+1. Install Python 3.13 for Windows; this is the tested runtime for the application and optional engines.
 2. Make sure at least one Microsoft SAPI voice is installed in Windows.
 3. Download the repository using **Code → Download ZIP** or Git:
 
 ```bash
-git clone https://github.com/zeter1/Text-to-MP3-Windows.git
-cd Text-to-MP3-Windows
+git clone https://github.com/zeter1/ZeTer-Voice.git
+cd ZeTer-Voice
 ```
 
 4. Create a virtual environment and install dependencies:
@@ -84,7 +88,7 @@ py text_to_mp3.py
 1. Configure a global hotkey for the required tab.
 2. Select text in a browser, document, or another application.
 3. Press the assigned hotkey.
-4. The selected text is transferred to Text to MP3 for reading or saving.
+4. The selected text is transferred to ZeTer Voice for reading or saving.
 
 ### Creating an MP3
 

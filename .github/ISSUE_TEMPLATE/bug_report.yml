@@ -1,5 +1,5 @@
 name: Сообщить об ошибке
-description: Сообщение о проблеме Text to MP3 for Windows
+description: Сообщение о проблеме ZeTer Voice
 title: "[Bug] "
 body:
   - type: markdown

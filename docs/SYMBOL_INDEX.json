@@ -13,13 +13,13 @@
     },
     {
       "path": "tts_app/app.py",
-      "bytes": 1112,
+      "bytes": 1142,
       "lines": 38
     },
     {
       "path": "tts_app/app_audio_settings.py",
-      "bytes": 11952,
-      "lines": 388
+      "bytes": 12089,
+      "lines": 391
     },
     {
       "path": "tts_app/app_event_dispatch.py",
@@ -48,8 +48,8 @@
     },
     {
       "path": "tts_app/app_shutdown.py",
-      "bytes": 6324,
-      "lines": 189
+      "bytes": 6599,
+      "lines": 195
     },
     {
       "path": "tts_app/app_tabs.py",
@@ -63,8 +63,8 @@
     },
     {
       "path": "tts_app/app_workspace_init.py",
-      "bytes": 12866,
-      "lines": 357
+      "bytes": 13230,
+      "lines": 365
     },
     {
       "path": "tts_app/app_workspace_save.py",
@@ -77,9 +77,29 @@
       "lines": 141
     },
     {
+      "path": "tts_app/engine_installation.py",
+      "bytes": 5454,
+      "lines": 108
+    },
+    {
+      "path": "tts_app/engine_manager_ui.py",
+      "bytes": 9021,
+      "lines": 173
+    },
+    {
+      "path": "tts_app/engine_runtime.py",
+      "bytes": 936,
+      "lines": 27
+    },
+    {
       "path": "tts_app/ffmpeg_tools.py",
       "bytes": 9361,
       "lines": 316
+    },
+    {
+      "path": "tts_app/generated_preview.py",
+      "bytes": 8410,
+      "lines": 161
     },
     {
       "path": "tts_app/problem_logger.py",
@@ -123,7 +143,7 @@
     },
     {
       "path": "tts_app/runtime_core.py",
-      "bytes": 10109,
+      "bytes": 10422,
       "lines": 336
     },
     {
@@ -173,13 +193,13 @@
     },
     {
       "path": "tts_app/task_conversion_controls.py",
-      "bytes": 13518,
-      "lines": 413
+      "bytes": 13857,
+      "lines": 420
     },
     {
       "path": "tts_app/task_conversion_worker.py",
-      "bytes": 52102,
-      "lines": 1412
+      "bytes": 52853,
+      "lines": 1427
     },
     {
       "path": "tts_app/task_file_io.py",
@@ -198,8 +218,8 @@
     },
     {
       "path": "tts_app/task_preview_player.py",
-      "bytes": 14732,
-      "lines": 403
+      "bytes": 15197,
+      "lines": 411
     },
     {
       "path": "tts_app/task_preview_runtime.py",
@@ -238,7 +258,7 @@
     },
     {
       "path": "tts_app/task_ui_build.py",
-      "bytes": 18604,
+      "bytes": 18660,
       "lines": 567
     },
     {
@@ -260,6 +280,21 @@
       "path": "tts_app/ui_stall_diagnostics.py",
       "bytes": 11899,
       "lines": 291
+    },
+    {
+      "path": "tts_app/voice_catalog.py",
+      "bytes": 1956,
+      "lines": 44
+    },
+    {
+      "path": "tts_app/voice_process.py",
+      "bytes": 8563,
+      "lines": 182
+    },
+    {
+      "path": "tts_app/voice_worker.py",
+      "bytes": 4100,
+      "lines": 88
     },
     {
       "path": "tts_app/widgets.py",
@@ -316,152 +351,152 @@
       "symbol": "AppAudioSettingsMixin",
       "kind": "class",
       "path": "tts_app/app_audio_settings.py",
-      "line": 12,
-      "end_line": 387
+      "line": 14,
+      "end_line": 390
     },
     {
       "symbol": "AppAudioSettingsMixin._load_voices_async",
       "short_symbol": "_load_voices_async",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 13,
-      "end_line": 42
+      "line": 15,
+      "end_line": 45
     },
     {
       "symbol": "AppAudioSettingsMixin._load_audio_outputs_async",
       "short_symbol": "_load_audio_outputs_async",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 44,
-      "end_line": 80
+      "line": 47,
+      "end_line": 83
     },
     {
       "symbol": "AppAudioSettingsMixin.refresh_audio_outputs",
       "short_symbol": "refresh_audio_outputs",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 82,
-      "end_line": 84
+      "line": 85,
+      "end_line": 87
     },
     {
       "symbol": "AppAudioSettingsMixin._cancel_audio_output_recheck",
       "short_symbol": "_cancel_audio_output_recheck",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 86,
-      "end_line": 93
+      "line": 89,
+      "end_line": 96
     },
     {
       "symbol": "AppAudioSettingsMixin._schedule_audio_output_recheck",
       "short_symbol": "_schedule_audio_output_recheck",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 95,
-      "end_line": 103
+      "line": 98,
+      "end_line": 106
     },
     {
       "symbol": "AppAudioSettingsMixin._retry_audio_output_discovery",
       "short_symbol": "_retry_audio_output_discovery",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 105,
-      "end_line": 108
+      "line": 108,
+      "end_line": 111
     },
     {
       "symbol": "AppAudioSettingsMixin._recheck_missing_audio_output",
       "short_symbol": "_recheck_missing_audio_output",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 110,
-      "end_line": 124
+      "line": 113,
+      "end_line": 127
     },
     {
       "symbol": "AppAudioSettingsMixin.stop_other_previews",
       "short_symbol": "stop_other_previews",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 126,
-      "end_line": 132
+      "line": 129,
+      "end_line": 135
     },
     {
       "symbol": "AppAudioSettingsMixin.output_is_used_by_other_task",
       "short_symbol": "output_is_used_by_other_task",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 134,
-      "end_line": 163
+      "line": 137,
+      "end_line": 166
     },
     {
       "symbol": "AppAudioSettingsMixin.open_logs",
       "short_symbol": "open_logs",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 165,
-      "end_line": 169
+      "line": 168,
+      "end_line": 172
     },
     {
       "symbol": "AppAudioSettingsMixin.open_settings",
       "short_symbol": "open_settings",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 171,
-      "end_line": 175
+      "line": 174,
+      "end_line": 178
     },
     {
       "symbol": "AppAudioSettingsMixin._open_folder_safe",
       "short_symbol": "_open_folder_safe",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 177,
-      "end_line": 198
+      "line": 180,
+      "end_line": 201
     },
     {
       "symbol": "AppAudioSettingsMixin._on_global_rate_changed",
       "short_symbol": "_on_global_rate_changed",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 200,
-      "end_line": 239
+      "line": 203,
+      "end_line": 242
     },
     {
       "symbol": "AppAudioSettingsMixin._on_global_pitch_changed",
       "short_symbol": "_on_global_pitch_changed",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 241,
-      "end_line": 276
+      "line": 244,
+      "end_line": 279
     },
     {
       "symbol": "AppAudioSettingsMixin._on_global_audio_output_changed",
       "short_symbol": "_on_global_audio_output_changed",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 278,
-      "end_line": 302
+      "line": 281,
+      "end_line": 305
     },
     {
       "symbol": "AppAudioSettingsMixin.schedule_settings_save",
       "short_symbol": "schedule_settings_save",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 304,
-      "end_line": 348
+      "line": 307,
+      "end_line": 351
     },
     {
       "symbol": "AppAudioSettingsMixin.save_settings",
       "short_symbol": "save_settings",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 350,
-      "end_line": 371
+      "line": 353,
+      "end_line": 374
     },
     {
       "symbol": "AppAudioSettingsMixin.log_ui_error",
       "short_symbol": "log_ui_error",
       "kind": "method",
       "path": "tts_app/app_audio_settings.py",
-      "line": 373,
-      "end_line": 387
+      "line": 376,
+      "end_line": 390
     },
     {
       "symbol": "AppEventDispatchMixin",
@@ -583,7 +618,7 @@
       "kind": "class",
       "path": "tts_app/app_shutdown.py",
       "line": 11,
-      "end_line": 188
+      "end_line": 194
     },
     {
       "symbol": "AppShutdownMixin._alive_background_threads",
@@ -591,31 +626,31 @@
       "kind": "method",
       "path": "tts_app/app_shutdown.py",
       "line": 12,
-      "end_line": 22
+      "end_line": 25
     },
     {
       "symbol": "AppShutdownMixin._finalize_close",
       "short_symbol": "_finalize_close",
       "kind": "method",
       "path": "tts_app/app_shutdown.py",
-      "line": 24,
-      "end_line": 43
+      "line": 27,
+      "end_line": 46
     },
     {
       "symbol": "AppShutdownMixin._poll_shutdown",
       "short_symbol": "_poll_shutdown",
       "kind": "method",
       "path": "tts_app/app_shutdown.py",
-      "line": 45,
-      "end_line": 63
+      "line": 48,
+      "end_line": 66
     },
     {
       "symbol": "AppShutdownMixin.on_close",
       "short_symbol": "on_close",
       "kind": "method",
       "path": "tts_app/app_shutdown.py",
-      "line": 65,
-      "end_line": 188
+      "line": 68,
+      "end_line": 194
     },
     {
       "symbol": "AppTabsMixin",
@@ -715,32 +750,32 @@
       "symbol": "AppWorkspaceInitMixin",
       "kind": "class",
       "path": "tts_app/app_workspace_init.py",
-      "line": 12,
-      "end_line": 356
+      "line": 14,
+      "end_line": 364
     },
     {
       "symbol": "AppWorkspaceInitMixin.__init__",
       "short_symbol": "__init__",
       "kind": "method",
       "path": "tts_app/app_workspace_init.py",
-      "line": 13,
-      "end_line": 152
+      "line": 15,
+      "end_line": 154
     },
     {
       "symbol": "AppWorkspaceInitMixin._build_ui",
       "short_symbol": "_build_ui",
       "kind": "method",
       "path": "tts_app/app_workspace_init.py",
-      "line": 154,
-      "end_line": 212
+      "line": 156,
+      "end_line": 220
     },
     {
       "symbol": "AppWorkspaceInitMixin._restore_workspace",
       "short_symbol": "_restore_workspace",
       "kind": "method",
       "path": "tts_app/app_workspace_init.py",
-      "line": 214,
-      "end_line": 356
+      "line": 222,
+      "end_line": 364
     },
     {
       "symbol": "AppWorkspaceSaveMixin",
@@ -843,6 +878,139 @@
       "end_line": 140
     },
     {
+      "symbol": "engine_path",
+      "kind": "function",
+      "path": "tts_app/engine_installation.py",
+      "line": 18,
+      "end_line": 25
+    },
+    {
+      "symbol": "engine_status",
+      "kind": "function",
+      "path": "tts_app/engine_installation.py",
+      "line": 28,
+      "end_line": 42
+    },
+    {
+      "symbol": "remove_engine",
+      "kind": "function",
+      "path": "tts_app/engine_installation.py",
+      "line": 45,
+      "end_line": 59
+    },
+    {
+      "symbol": "install_engine",
+      "kind": "function",
+      "path": "tts_app/engine_installation.py",
+      "line": 62,
+      "end_line": 99
+    },
+    {
+      "symbol": "pip_install",
+      "kind": "function",
+      "path": "tts_app/engine_installation.py",
+      "line": 102,
+      "end_line": 107
+    },
+    {
+      "symbol": "engine_operation_busy",
+      "kind": "function",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 16,
+      "end_line": 18
+    },
+    {
+      "symbol": "audio_active",
+      "kind": "function",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 21,
+      "end_line": 24
+    },
+    {
+      "symbol": "EngineManager",
+      "kind": "class",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 27,
+      "end_line": 172
+    },
+    {
+      "symbol": "EngineManager.__init__",
+      "short_symbol": "__init__",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 28,
+      "end_line": 71
+    },
+    {
+      "symbol": "EngineManager._destroyed",
+      "short_symbol": "_destroyed",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 73,
+      "end_line": 75
+    },
+    {
+      "symbol": "EngineManager.refresh",
+      "short_symbol": "refresh",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 77,
+      "end_line": 84
+    },
+    {
+      "symbol": "EngineManager.start",
+      "short_symbol": "start",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 86,
+      "end_line": 107
+    },
+    {
+      "symbol": "EngineManager.run",
+      "short_symbol": "run",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 109,
+      "end_line": 141
+    },
+    {
+      "symbol": "EngineManager.poll",
+      "short_symbol": "poll",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 143,
+      "end_line": 163
+    },
+    {
+      "symbol": "EngineManager.close",
+      "short_symbol": "close",
+      "kind": "method",
+      "path": "tts_app/engine_manager_ui.py",
+      "line": 165,
+      "end_line": 172
+    },
+    {
+      "symbol": "program_root",
+      "kind": "function",
+      "path": "tts_app/engine_runtime.py",
+      "line": 7,
+      "end_line": 8
+    },
+    {
+      "symbol": "engine_python",
+      "kind": "function",
+      "path": "tts_app/engine_runtime.py",
+      "line": 11,
+      "end_line": 17
+    },
+    {
+      "symbol": "engine_environment",
+      "kind": "function",
+      "path": "tts_app/engine_runtime.py",
+      "line": 20,
+      "end_line": 26
+    },
+    {
       "symbol": "FfmpegError",
       "kind": "class",
       "path": "tts_app/ffmpeg_tools.py",
@@ -870,6 +1038,13 @@
       "path": "tts_app/ffmpeg_tools.py",
       "line": 23,
       "end_line": 315
+    },
+    {
+      "symbol": "preview_generated_audio",
+      "kind": "function",
+      "path": "tts_app/generated_preview.py",
+      "line": 15,
+      "end_line": 160
     },
     {
       "symbol": "ProblemLogger",
@@ -1573,71 +1748,71 @@
       "symbol": "TaskConversionControlsMixin",
       "kind": "class",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 10,
-      "end_line": 412
+      "line": 12,
+      "end_line": 419
     },
     {
       "symbol": "TaskConversionControlsMixin.ask_output_path",
       "short_symbol": "ask_output_path",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 11,
-      "end_line": 39
+      "line": 13,
+      "end_line": 41
     },
     {
       "symbol": "TaskConversionControlsMixin.start_job",
       "short_symbol": "start_job",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 41,
-      "end_line": 190
+      "line": 43,
+      "end_line": 195
     },
     {
       "symbol": "TaskConversionControlsMixin.resume_recovery_job",
       "short_symbol": "resume_recovery_job",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 192,
-      "end_line": 376
+      "line": 197,
+      "end_line": 383
     },
     {
       "symbol": "TaskConversionControlsMixin.cancel_job",
       "short_symbol": "cancel_job",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 378,
-      "end_line": 401
+      "line": 385,
+      "end_line": 408
     },
     {
       "symbol": "TaskConversionControlsMixin.set_job_idle",
       "short_symbol": "set_job_idle",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 403,
-      "end_line": 409
+      "line": 410,
+      "end_line": 416
     },
     {
       "symbol": "TaskConversionControlsMixin.conversion_running",
       "short_symbol": "conversion_running",
       "kind": "method",
       "path": "tts_app/task_conversion_controls.py",
-      "line": 411,
-      "end_line": 412
+      "line": 418,
+      "end_line": 419
     },
     {
       "symbol": "TaskConversionWorkerMixin",
       "kind": "class",
       "path": "tts_app/task_conversion_worker.py",
-      "line": 10,
-      "end_line": 1411
+      "line": 13,
+      "end_line": 1426
     },
     {
       "symbol": "TaskConversionWorkerMixin._job_worker",
       "short_symbol": "_job_worker",
       "kind": "method",
       "path": "tts_app/task_conversion_worker.py",
-      "line": 11,
-      "end_line": 1411
+      "line": 14,
+      "end_line": 1426
     },
     {
       "symbol": "TaskFileIoMixin",
@@ -1768,32 +1943,32 @@
       "symbol": "TaskPreviewPlayerMixin",
       "kind": "class",
       "path": "tts_app/task_preview_player.py",
-      "line": 11,
-      "end_line": 402
+      "line": 15,
+      "end_line": 410
     },
     {
       "symbol": "TaskPreviewPlayerMixin._start_preview_worker",
       "short_symbol": "_start_preview_worker",
       "kind": "method",
       "path": "tts_app/task_preview_player.py",
-      "line": 12,
-      "end_line": 273
+      "line": 16,
+      "end_line": 281
     },
     {
       "symbol": "TaskPreviewPlayerMixin.show_preview_segment",
       "short_symbol": "show_preview_segment",
       "kind": "method",
       "path": "tts_app/task_preview_player.py",
-      "line": 275,
-      "end_line": 338
+      "line": 283,
+      "end_line": 346
     },
     {
       "symbol": "TaskPreviewPlayerMixin.handle_preview_segment_done",
       "short_symbol": "handle_preview_segment_done",
       "kind": "method",
       "path": "tts_app/task_preview_player.py",
-      "line": 340,
-      "end_line": 402
+      "line": 348,
+      "end_line": 410
     },
     {
       "symbol": "TaskPreviewRuntimeMixin",
@@ -2376,6 +2551,117 @@
       "path": "tts_app/ui_stall_diagnostics.py",
       "line": 287,
       "end_line": 290
+    },
+    {
+      "symbol": "extra_voice_names",
+      "kind": "function",
+      "path": "tts_app/voice_catalog.py",
+      "line": 24,
+      "end_line": 25
+    },
+    {
+      "symbol": "voice_spec",
+      "kind": "function",
+      "path": "tts_app/voice_catalog.py",
+      "line": 28,
+      "end_line": 29
+    },
+    {
+      "symbol": "verified_model",
+      "kind": "function",
+      "path": "tts_app/voice_catalog.py",
+      "line": 33,
+      "end_line": 43
+    },
+    {
+      "symbol": "stop_process",
+      "kind": "function",
+      "path": "tts_app/voice_process.py",
+      "line": 15,
+      "end_line": 24
+    },
+    {
+      "symbol": "checked_wav",
+      "kind": "function",
+      "path": "tts_app/voice_process.py",
+      "line": 27,
+      "end_line": 33
+    },
+    {
+      "symbol": "run_audio_process",
+      "kind": "function",
+      "path": "tts_app/voice_process.py",
+      "line": 36,
+      "end_line": 52
+    },
+    {
+      "symbol": "audio_filters",
+      "kind": "function",
+      "path": "tts_app/voice_process.py",
+      "line": 55,
+      "end_line": 67
+    },
+    {
+      "symbol": "VoiceSession",
+      "kind": "class",
+      "path": "tts_app/voice_process.py",
+      "line": 70,
+      "end_line": 181
+    },
+    {
+      "symbol": "VoiceSession.__init__",
+      "short_symbol": "__init__",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 71,
+      "end_line": 82
+    },
+    {
+      "symbol": "VoiceSession.__enter__",
+      "short_symbol": "__enter__",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 84,
+      "end_line": 93
+    },
+    {
+      "symbol": "VoiceSession._read_responses",
+      "short_symbol": "_read_responses",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 95,
+      "end_line": 102
+    },
+    {
+      "symbol": "VoiceSession.request",
+      "short_symbol": "request",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 104,
+      "end_line": 140
+    },
+    {
+      "symbol": "VoiceSession.synthesize",
+      "short_symbol": "synthesize",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 142,
+      "end_line": 172
+    },
+    {
+      "symbol": "VoiceSession.__exit__",
+      "short_symbol": "__exit__",
+      "kind": "method",
+      "path": "tts_app/voice_process.py",
+      "line": 174,
+      "end_line": 181
+    },
+    {
+      "symbol": "main",
+      "kind": "function",
+      "path": "tts_app/voice_worker.py",
+      "line": 23,
+      "end_line": 83
     },
     {
       "symbol": "ClosableNotebook",

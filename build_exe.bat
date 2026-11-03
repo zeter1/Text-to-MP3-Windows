@@ -6,7 +6,7 @@ set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
 
 rem ============================================================================
-rem Text-to-MP3-Windows - ready Windows EXE builder
+rem ZeTer-Voice - ready Windows EXE builder
 rem
 rem Double-click build_exe.bat. It automatically:
 rem   1. Finds tested Python 3.13 or installs it for the current user via winget.
@@ -18,9 +18,9 @@ rem   6. Builds a reliable ONEDIR Windows GUI distribution.
 rem   7. Runs --self-test on the packaged EXE before reporting success.
 rem
 rem Result:
-rem   dist\Text-to-MP3-Windows\Text-to-MP3-Windows.exe
+rem   dist\ZeTer-Voice\ZeTer-Voice.exe
 rem   + its runtime folder containing Python, pywin32 and FFmpeg.
-rem Copy the WHOLE Text-to-MP3-Windows folder to another PC.
+rem Copy the WHOLE ZeTer-Voice folder to another PC.
 rem Python and a separate FFmpeg installation are NOT required to run it.
 rem
 rem CI/Codex: build_exe.bat --ci
@@ -68,7 +68,7 @@ echo [4/7] Running offline repository tests...
 echo [5/7] Cleaning previous build...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
-if exist "Text-to-MP3-Windows.spec" del /q "Text-to-MP3-Windows.spec"
+if exist "ZeTer-Voice.spec" del /q "ZeTer-Voice.spec"
 
 echo [6/7] Building ready Windows distribution...
 "%BUILD_PY%" -m PyInstaller ^
@@ -77,7 +77,7 @@ echo [6/7] Building ready Windows distribution...
   --onedir ^
   --contents-directory "runtime" ^
   --windowed ^
-  --name "Text-to-MP3-Windows" ^
+  --name "ZeTer-Voice" ^
   --runtime-hook "build_support\package_runtime.py" ^
   --collect-all imageio_ffmpeg ^
   --hidden-import win32com.client ^
@@ -86,12 +86,15 @@ echo [6/7] Building ready Windows distribution...
   --hidden-import pywintypes ^
   text_to_mp3.py || goto :fail
 
-set "DIST_DIR=%CD%\dist\Text-to-MP3-Windows"
-set "DIST_EXE=%DIST_DIR%\Text-to-MP3-Windows.exe"
+set "DIST_DIR=%CD%\dist\ZeTer-Voice"
+set "DIST_EXE=%DIST_DIR%\ZeTer-Voice.exe"
 if not exist "%DIST_EXE%" (
     echo [ERROR] Expected packaged EXE was not created.
     goto :fail
 )
+
+echo Preparing private Python runtime for optional voice engines...
+"%BUILD_PY%" build_support\prepare_engine_runtime.py "%DIST_DIR%" || goto :fail
 
 echo [7/7] Running packaged runtime self-test...
 powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$p=Start-Process -FilePath '%DIST_EXE%' -ArgumentList '--self-test' -PassThru -Wait; exit $p.ExitCode" || goto :fail

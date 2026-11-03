@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .voice_catalog import extra_voice_names
+
 from .runtime import *
 from .problem_logger import ProblemLogger
 from .text_processing import *
@@ -14,16 +16,17 @@ class AppAudioSettingsMixin:
         current = self.current_tab()
         if current:
             current.status_var.set(
-                "Ищу установленные голоса Windows SAPI…"
+                    "Ищу голоса Windows SAPI, Silero и Edge…"
             )
 
         def worker() -> None:
             try:
-                voices = get_sapi_voices()
+                voices = get_sapi_voices() + extra_voice_names()
                 self.events.put(
                     ("", "voices_loaded", voices)
                 )
             except Exception as exc:
+                self.events.put(("", "voices_loaded", extra_voice_names()))
                 self.events.put(
                     (
                         "",

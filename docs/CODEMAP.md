@@ -21,6 +21,12 @@
 | logger events/stats/errors/task lifecycle | `tts_app/problem_logger_events.py` | — |
 | разбиение текста / bookmark segment helpers | `tts_app/text_processing.py` | — |
 | SAPI voices/devices/synthesize WAV | `tts_app/sapi_core.py` | `runtime_core.py` |
+| дополнительные голоса, hash/путь модели | `tts_app/voice_catalog.py` | `docs/VOICE_ENGINES.md` |
+| private Python source/EXE для worker/installer | `tts_app/engine_runtime.py` | `build_support/prepare_engine_runtime.py` |
+| верхняя вкладка установки/удаления движков | `tts_app/engine_manager_ui.py` | `app_workspace_init.py`, `app_shutdown.py` |
+| additive установка / восстановимое удаление | `tts_app/engine_installation.py` | `tools/manage_voice_engine.py`, `voice_catalog.py` |
+| Silero/Edge worker и отменяемый синтез WAV | `tts_app/voice_worker.py`, `tts_app/voice_process.py` | `tools/setup_voices.py` |
+| прослушивание Silero/Edge через SAPI SpeakStream | `tts_app/generated_preview.py` | `sapi_preview_diagnostics.py`, `voice_process.py` |
 | SAPI live preview stream / подтверждение блока | `tts_app/sapi_preview.py` | `sapi_core.py`, `text_processing.py` |
 | SAPI scalar snapshots / audio-delta oracle / exception COM lifetime | `tts_app/sapi_preview_diagnostics.py` | `sapi_preview.py`, `docs/LOGGING_FOR_AI.md` |
 | FFmpeg executable/concat/final MP3 | `tts_app/ffmpeg_tools.py` | `runtime_audio.py` |

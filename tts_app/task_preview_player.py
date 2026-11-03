@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from .voice_catalog import voice_spec
+from .generated_preview import preview_generated_audio
+from .engine_manager_ui import engine_operation_busy
+
 from .runtime import *
 from .problem_logger import ProblemLogger
 from .text_processing import *
@@ -18,6 +22,9 @@ class TaskPreviewPlayerMixin:
         selected_text: bool,
         preserve_existing_bookmark: bool = False,
     ) -> None:
+        if engine_operation_busy(self.app):
+            messagebox.showinfo(APP_TITLE, 'Дождитесь завершения операции с движками или отмените её.')
+            return
         if self.preview_thread and self.preview_thread.is_alive():
             return
 
@@ -219,7 +226,8 @@ class TaskPreviewPlayerMixin:
                         **info,
                     )
 
-                preview_result = preview_sapi_text(
+                preview_function = preview_generated_audio if voice_spec(voice) else preview_sapi_text
+                preview_result = preview_function(
                     text=text,
                     voice_description=voice,
                     audio_output_description=audio_output,

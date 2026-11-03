@@ -26,7 +26,7 @@ def main() -> None:
         import ctypes
         ctypes.windll.user32.MessageBoxW(
             None, "Программа уже запущена. Переключитесь на открытое окно.",
-            "Текст → MP3", 0x40,
+            "ZeTer Voice", 0x40,
         )
         return
     try:

@@ -365,7 +365,7 @@ class TaskUiBuildMixin:
 
         voice_group = ttk.LabelFrame(
             self.frame,
-            text="Параметры голоса",
+            text="Параметры голоса · Silero: офлайн; Edge: текст → Microsoft",
             padding=10,
         )
         voice_group.pack(fill="x", pady=(10, 0))

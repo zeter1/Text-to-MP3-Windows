@@ -27,7 +27,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 
-APP_TITLE = "Текст → MP3 (Windows SAPI)"
+APP_TITLE = "ZeTer Voice"
 APP_VERSION = "4.2.4 FULL"
 
 DEFAULT_VOICE_HINT = "Microsoft Irina Desktop"

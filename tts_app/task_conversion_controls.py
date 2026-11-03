@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .engine_manager_ui import engine_operation_busy
+
 from .runtime import *
 from .problem_logger import ProblemLogger
 from .text_processing import *
@@ -39,6 +41,9 @@ class TaskConversionControlsMixin:
         return output_path
 
     def start_job(self) -> None:
+        if engine_operation_busy(self.app):
+            messagebox.showinfo(APP_TITLE, 'Дождитесь завершения операции с движками или отмените её.')
+            return
         if self.worker and self.worker.is_alive():
             return
 
@@ -194,6 +199,8 @@ class TaskConversionControlsMixin:
         manifest: dict,
         work_dir: Path,
     ) -> bool:
+        if engine_operation_busy(self.app):
+            return False
         if self.worker and self.worker.is_alive():
             return False
 

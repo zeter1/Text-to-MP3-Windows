@@ -11,6 +11,9 @@ from .widgets import *
 class AppShutdownMixin:
     def _alive_background_threads(self) -> list[str]:
         alive: list[str] = []
+        manager = getattr(self, 'engine_manager', None)
+        if manager and manager.thread and manager.thread.is_alive():
+            alive.append(manager.thread.name)
         for task in self.tabs.values():
             if task.worker and task.worker.is_alive():
                 alive.append(task.worker.name)
@@ -98,6 +101,9 @@ class AppShutdownMixin:
         ]
 
         self.shutdown_in_progress = True
+        manager = getattr(self, 'engine_manager', None)
+        if manager:
+            manager.close()
         self.shutdown_deadline = (
             time.perf_counter() + SHUTDOWN_GRACE_SEC
         )
