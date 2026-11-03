@@ -25,7 +25,8 @@ class RuntimeTests(unittest.TestCase):
             private.parent.mkdir()
             private.write_bytes(b'fixture')
             with patch.object(runtime.sys, 'frozen', True, create=True), patch.object(runtime.sys, 'executable', str(base / 'ZeTer-Voice.exe')):
-                self.assertEqual(Path(runtime.engine_python()), private)
+                self.assertEqual(Path(runtime.engine_python()), private.resolve())
+                self.assertTrue(Path(runtime.engine_python()).samefile(private))
                 private.unlink()
                 with self.assertRaisesRegex(RuntimeError, 'Распакуйте'):
                     runtime.engine_python()
